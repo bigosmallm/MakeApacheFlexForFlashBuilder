@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+
+
+<!--
+	This script should be used to create an Apache Flex SDK that has the
+    directory structure that the Adobe Flash Player IDE expects.
+
+	The Adobe AIR SDK and the Adobe Flash Player playerglobal.swc are integrated
+    into the directory structure.  The paths in the framework configuration files are 
+    modified to reflect this.  The AIR_HOME and PLAYERGLOBAL_HOME environment 
+    variables are not required because the locations of these pieces are known.
+
+	Usage: makeApacheFlexForFlashBuilder [sdk directory]
+
+	@author OmPrakash Muppirala (bigosmallm@gmail.com)
+
+-->
+
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   width="700" height="500"
+					   invoke="windowedapplication1_invokeHandler(event)">
+<fx:Script>
+	<![CDATA[
+		import deng.fzip.FZip;
+		import deng.fzip.FZipEvent;
+		import deng.fzip.FZipFile;
+		
+		import mx.collections.ArrayCollection;
+			
+		/**
+		 * Edit these constants if you would like to download from alternative locations.
+		 * 
+		 * 
+		 * Apache Flex binary distribution
+		 */
+		private const APACHE_FLEX_BIN_DISTRO_FILE:String = "apache-flex-sdk-4.8.0-incubating-bin.zip";
+		private const APACHE_FLEX_BIN_DISTRO_URL:String = "http://people.apache.org/~cframpton/ApacheFlexRC/current/" + APACHE_FLEX_BIN_DISTRO_FILE;
+			
+		/**
+		 * 
+		 * Adobe AIR SDK Version 3.1
+		 * 
+		 */ 
+		private const ADOBE_AIR_SDK_WIN_FILE:String = "AdobeAIRSDK.zip"
+		private const ADOBE_AIR_SDK_WIN_URL:String = "http://airdownload.adobe.com/air/win/download/3.1/" + ADOBE_AIR_SDK_WIN_FILE;
+
+		/**
+		 * 
+		 * Adobe Flash Player Version 11.1
+		 * 
+		 */
+		private const ADOBE_FB_GLOBALPLAYER_SWC_URL:String = "http://fpdownload.macromedia.com/get/flashplayer/updaters/11/playerglobal11_1.swc"
+			
+		private const APP_NAME:String = "MakeApacheFlexForFlashBuilder";
+			
+		private var _args:Array;
+		private var _flexHome:String;
+		private var _flexTemp:String;
+		private var _flexHomeDir:File;
+		private var _flexTempDir:File;
+		private var _apacheFlexSDKZipFile:File;
+		private var _adobeAIRSDKWinZipFile:File;
+		private var _fbGlobalPlayerDir:File;
+		
+		protected function log(text:String):void{
+			_logTxtArea.appendText("\n" + text); 
+		}
+		
+		protected function windowedapplication1_invokeHandler(event:InvokeEvent):void
+		{
+			_args = event.arguments;
+			log(APP_NAME + " invoked with the following arguments: " + _args.toString());
+			processCommandLineArguments();
+		}
+		
+		protected function processCommandLineArguments():void{
+			if(!checkForAndHandleNoArguments()){
+				createDirectories();
+				downloadAndUnzipApacheFlexSDK();
+			}
+		}
+		
+		/**
+		 * If there is no argument, show error message
+		 */
+		protected function checkForAndHandleNoArguments():Boolean{
+			if(_args.length == 0){
+				log("Usage: " + APP_NAME + " [directory for Apache Flex SDK for Adobe Flash Builder]");
+				return true;
+			}
+			return false;
+		}
+		
+		protected function createDirectories():void{
+			log("Setting flex home");
+			_flexHome = _args[0];
+			log("Creating flex home");
+			_flexHomeDir = createFolder(_flexHome);
+			log("Creating temp dir");
+			_flexTemp = _flexHome+"\\temp";
+			_flexTempDir = createFolder(_flexTemp);
+		}
+		
+		protected function downloadAndUnzipApacheFlexSDK():void{
+			log("Downloading Apache Flex SDK from: " + APACHE_FLEX_BIN_DISTRO_URL);
+			download(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload);
+		}
+		
+		protected function handleApacheFlexSDKDownload(event:Event):void{
+			_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + "\\" + APACHE_FLEX_BIN_DISTRO_FILE); 
+			var fs:FileStream = new FileStream(); 
+			fs.open(_apacheFlexSDKZipFile, FileMode.WRITE); 
+			fs.writeBytes(event.target.data); 
+			fs.close();
+			unzipApacheFlexSDK();
+		}
+		
+		protected function unzipApacheFlexSDK():void{
+			log("Unzipping: " + _apacheFlexSDKZipFile.nativePath);
+			unzip(_apacheFlexSDKZipFile,handleApacheFlexSDKZipFileUnzipComplete);
+		}
+		
+		protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void{
+			log("Finished unzipping: " + _apacheFlexSDKZipFile.nativePath);
+			downloadAndUnzipAIRRuntimeKitForWindows();
+		}
+		
+		protected function downloadAndUnzipAIRRuntimeKitForWindows():void{
+			log("Downloading Adobe AIR Runtime Kit for Windows  from: " + ADOBE_AIR_SDK_WIN_URL);
+			download(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload);
+		}
+		
+		protected function handleAIRSDKDownload(event:Event):void{
+			_adobeAIRSDKWinZipFile = File.userDirectory.resolvePath(_flexTemp + "\\" + ADOBE_AIR_SDK_WIN_FILE);
+			var fs:FileStream = new FileStream();
+			fs.open(_adobeAIRSDKWinZipFile, FileMode.WRITE);
+			fs.writeBytes(event.target.data); 
+			fs.close();
+			unzipAdobeAIRSDKWin();
+		}
+		
+		protected function unzipAdobeAIRSDKWin():void{
+			log("Unzipping: " + _adobeAIRSDKWinZipFile.nativePath);
+			unzip(_adobeAIRSDKWinZipFile,handleAdobeAIRSDKWinZipFileUnzipComplete);
+		}
+		
+		protected function handleAdobeAIRSDKWinZipFileUnzipComplete(event:Event):void{
+			log("Finished unzipping: " + _adobeAIRSDKWinZipFile.nativePath);
+			downloadPlayerGlobalSWC();
+		}
+		
+		protected function downloadPlayerGlobalSWC():void{
+			log("Downloading Adobe Flash Player playerglobal.swc from: " + ADOBE_FB_GLOBALPLAYER_SWC_URL);
+			download(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload);
+		}
+		
+		protected function handlePlayerGlobalDownload(event:Event):void{
+			_fbGlobalPlayerDir = createFolder(_flexHome + "\\frameworks\\libs\\player\\11.1");
+			var playerGlobalFile:File = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + "\\playerglobal.swc");
+			var fs:FileStream = new FileStream();
+			fs.open(playerGlobalFile, FileMode.WRITE);
+			fs.writeBytes(event.target.data); 
+			fs.close();
+			
+			copyConfigFiles();
+		}
+		
+		protected function copyConfigFiles():void{
+			log("Installing frameworks config files configured for use with Adobe Flash Builder");
+			var configFilesDir:File = File.userDirectory.resolvePath(_flexHome + "\\ide\\flashbuilder\\config");
+			var configFiles:Array = configFilesDir.getDirectoryListing();
+			var flexHomeFrameworksDir:File = File.userDirectory.resolvePath(_flexHome + "\\frameworks");
+			for each (var f:File in configFiles){
+				if(isValidConfigFile(f)){
+					var copyToFile:File = flexHomeFrameworksDir.resolvePath(f.name);
+					f.copyTo(copyToFile,true);
+				}
+			}
+			
+			cleanup();
+		}
+		
+		protected function cleanup():void{
+			_flexTempDir.deleteDirectory(true);
+			log("Installation complete.");
+		}
+		
+		/************************ Utility methods for creating a folder, download a file, unzip a file *****************/
+	
+		protected function createFolder(path:String):File{
+			var dir:File = new File(path);
+			dir.createDirectory();
+			return dir;
+		}
+		
+		protected function download(url:String,handlerFunction:Function):void{
+			var loader:URLLoader = new URLLoader(); 
+			loader.dataFormat = URLLoaderDataFormat.BINARY; 
+			loader.addEventListener(Event.COMPLETE, handlerFunction);
+			var req:URLRequest = new URLRequest(url); 
+			loader.load(req);
+		}
+		
+		private function unzip(fileToUnzip:File, unzipCompleteFunction:Function):void
+		{
+			var zipFileBytes:ByteArray = new ByteArray();
+			var fs:FileStream = new FileStream();
+			fs.open(fileToUnzip, FileMode.READ);
+			fs.readBytes(zipFileBytes);
+			fs.close();
+			var fzip:FZip = new FZip();
+			fzip.addEventListener(FZipEvent.FILE_LOADED, onFileLoaded);
+			fzip.addEventListener(Event.COMPLETE, unzipCompleteFunction);
+			fzip.addEventListener(Event.COMPLETE, onUnzipComplete);
+			fzip.loadBytes(zipFileBytes);
+		}
+		
+		private function onFileLoaded(e:FZipEvent):void
+		{
+			var fzf:FZipFile = e.file;
+			if (fzf.sizeUncompressed == 0) return;
+			var f:File = _flexHomeDir.resolvePath(fzf.filename);
+			var fs:FileStream = new FileStream();
+			fs.open(f, FileMode.WRITE);
+			fs.writeBytes(fzf.content);
+			fs.close();
+		}
+		
+		private function onUnzipComplete(e:Event):void
+		{
+			var fzip:FZip = e.target as FZip;
+			fzip.removeEventListener(FZipEvent.FILE_LOADED, onFileLoaded);
+			fzip.removeEventListener(Event.COMPLETE, onUnzipComplete);
+		}
+
+		protected function isValidConfigFile(file:File):Boolean{
+			var name:String = file.name;
+			if(name.search("-config.xml") == -1){
+				return false;
+			}
+			else{
+				return true;
+			}
+		}
+
+		
+	]]>
+</fx:Script>
+	<s:TextArea id="_logTxtArea" top="0" bottom="0" left="0" right="0" />
+</s:WindowedApplication>
