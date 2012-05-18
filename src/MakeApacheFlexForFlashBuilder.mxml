@@ -38,14 +38,15 @@ limitations under the License.
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   width="700" height="500"
-					   invoke="windowedapplication1_invokeHandler(event)">
+					   invoke="windowedapplication1_invokeHandler(event)" showStatusBar="false">
 <fx:Script>
 	<![CDATA[
-		import deng.fzip.FZip;
-		import deng.fzip.FZipEvent;
-		import deng.fzip.FZipFile;
 		
 		import mx.collections.ArrayCollection;
+		
+		import org.as3commons.zip.Zip;
+		import org.as3commons.zip.ZipEvent;
+		import org.as3commons.zip.ZipFile;
 			
 		/**
 		 * Edit these constants if you would like to download from alternative locations.
@@ -217,8 +218,25 @@ limitations under the License.
 			var loader:URLLoader = new URLLoader(); 
 			loader.dataFormat = URLLoaderDataFormat.BINARY; 
 			loader.addEventListener(Event.COMPLETE, handlerFunction);
+			loader.addEventListener(Event.COMPLETE,handleDownloadComplete);
+			loader.addEventListener(ProgressEvent.PROGRESS,handleDownloadProgress);
 			var req:URLRequest = new URLRequest(url); 
 			loader.load(req);
+		}
+		
+		private var _previousDisplayedPercent:int=0;
+		protected function handleDownloadProgress(event:ProgressEvent):void{
+			var bytesTotal:int = event.bytesTotal;
+			var bytesLoaded:int = event.bytesLoaded;
+			var percentLoaded:int = Math.round(bytesLoaded*100/bytesTotal);
+			if(percentLoaded % 10 == 0 && percentLoaded != _previousDisplayedPercent){
+				log("Downloaded " + percentLoaded + "%");
+				_previousDisplayedPercent = percentLoaded;
+			}
+		}
+		
+		protected function handleDownloadComplete(event:Event):void{
+			_previousDisplayedPercent = 0;
 		}
 		
 		private function unzip(fileToUnzip:File, unzipCompleteFunction:Function):void
@@ -228,16 +246,16 @@ limitations under the License.
 			fs.open(fileToUnzip, FileMode.READ);
 			fs.readBytes(zipFileBytes);
 			fs.close();
-			var fzip:FZip = new FZip();
-			fzip.addEventListener(FZipEvent.FILE_LOADED, onFileLoaded);
+			var fzip:Zip = new Zip();
+			fzip.addEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
 			fzip.addEventListener(Event.COMPLETE, unzipCompleteFunction);
 			fzip.addEventListener(Event.COMPLETE, onUnzipComplete);
 			fzip.loadBytes(zipFileBytes);
 		}
 		
-		private function onFileLoaded(e:FZipEvent):void
+		private function onFileLoaded(e:ZipEvent):void
 		{
-			var fzf:FZipFile = e.file;
+			var fzf:ZipFile = e.file;
 			if (fzf.sizeUncompressed == 0) return;
 			var f:File = _flexHomeDir.resolvePath(fzf.filename);
 			var fs:FileStream = new FileStream();
@@ -248,8 +266,8 @@ limitations under the License.
 		
 		private function onUnzipComplete(e:Event):void
 		{
-			var fzip:FZip = e.target as FZip;
-			fzip.removeEventListener(FZipEvent.FILE_LOADED, onFileLoaded);
+			var fzip:Zip = e.target as Zip;
+			fzip.removeEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
 			fzip.removeEventListener(Event.COMPLETE, onUnzipComplete);
 		}
 
@@ -266,5 +284,5 @@ limitations under the License.
 		
 	]]>
 </fx:Script>
-	<s:TextArea id="_logTxtArea" top="0" bottom="0" left="0" right="0" />
+	<s:TextArea id="_logTxtArea" top="0" bottom="0" left="0" right="0" contentBackgroundColor="0x000000" color="0xFFFFFF" />
 </s:WindowedApplication>
