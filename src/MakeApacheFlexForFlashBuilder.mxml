@@ -162,7 +162,6 @@ limitations under the License.
 		
 		protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void{
 			log("Finished unzipping: " + _apacheFlexSDKZipFile.nativePath);
-			
 			downloadAIRRuntimeKitForWindows();
 		}
 		
