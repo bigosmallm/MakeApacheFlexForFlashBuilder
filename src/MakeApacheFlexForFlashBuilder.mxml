@@ -84,37 +84,55 @@ limitations under the License.
 		private var _fbGlobalPlayerDir:File;
 		
 		protected function log(text:String):void{
-			_logTxtArea.appendText("\n" + text); 
+			_logTxtArea.appendText("\n" + text);
+			_logTxtArea.validateNow();
 		}
 		
 		protected function windowedapplication1_invokeHandler(event:InvokeEvent):void
 		{
 			_args = event.arguments;
-			log(APP_NAME + " invoked with the following arguments: " + _args.toString());
-			processCommandLineArguments();
+			main();
 		}
 		
-		protected function processCommandLineArguments():void{
-			if(!checkForAndHandleNoArguments()){
+		/**
+		 * 
+		 * Start off processing the installation.  
+		 * First create the flex sdk directory and the temp dirs
+		 * 
+		 */
+		protected function main():void{
+			var isValidInvocaton:Boolean = validateArguments();
+			if(isValidInvocaton){
+				log(APP_NAME + " invoked with the following arguments: " + _flexHome);
 				createDirectories();
-				downloadAndUnzipApacheFlexSDK();
+				downloadApacheFlexSDK();
+			}
+			else{
+				log("Aborting installation.");
 			}
 		}
 		
 		/**
-		 * If there is no argument, show error message
+		 * If there is no argument, show error message and exit
+		 * If there are multiple arguments, its most probably a directory path with spaces.  Concatenate all of them with spaces in between
 		 */
-		protected function checkForAndHandleNoArguments():Boolean{
+		protected function validateArguments():Boolean{
 			if(_args.length == 0){
 				log("Usage: " + APP_NAME + " [directory for Apache Flex SDK for Adobe Flash Builder]");
+				return false;
+			}
+			if(_args.length > 1){
+				_flexHome = _args.join(" "); 
+				return true;
+			}
+			if(_args.length == 1){
+				_flexHome = _args[0];
 				return true;
 			}
 			return false;
 		}
 		
 		protected function createDirectories():void{
-			log("Setting flex home");
-			_flexHome = _args[0];
 			log("Creating flex home");
 			_flexHomeDir = createFolder(_flexHome);
 			log("Creating temp dir");
@@ -122,7 +140,7 @@ limitations under the License.
 			_flexTempDir = createFolder(_flexTemp);
 		}
 		
-		protected function downloadAndUnzipApacheFlexSDK():void{
+		protected function downloadApacheFlexSDK():void{
 			log("Downloading Apache Flex SDK from: " + APACHE_FLEX_BIN_DISTRO_URL);
 			download(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload);
 		}
@@ -133,6 +151,7 @@ limitations under the License.
 			fs.open(_apacheFlexSDKZipFile, FileMode.WRITE); 
 			fs.writeBytes(event.target.data); 
 			fs.close();
+			
 			unzipApacheFlexSDK();
 		}
 		
@@ -143,10 +162,11 @@ limitations under the License.
 		
 		protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void{
 			log("Finished unzipping: " + _apacheFlexSDKZipFile.nativePath);
-			downloadAndUnzipAIRRuntimeKitForWindows();
+			
+			downloadAIRRuntimeKitForWindows();
 		}
 		
-		protected function downloadAndUnzipAIRRuntimeKitForWindows():void{
+		protected function downloadAIRRuntimeKitForWindows():void{
 			log("Downloading Adobe AIR Runtime Kit for Windows  from: " + ADOBE_AIR_SDK_WIN_URL);
 			download(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload);
 		}
@@ -157,6 +177,7 @@ limitations under the License.
 			fs.open(_adobeAIRSDKWinZipFile, FileMode.WRITE);
 			fs.writeBytes(event.target.data); 
 			fs.close();
+			
 			unzipAdobeAIRSDKWin();
 		}
 		
