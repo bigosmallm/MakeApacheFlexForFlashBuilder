@@ -222,10 +222,10 @@ limitations under the License.
 			fs.writeBytes(event.target.data); 
 			fs.close();
 			
-			unzipAdobeAIRSDKWin();
+			unzipAdobeAIRSDK();
 		}
 		
-		protected function unzipAdobeAIRSDKWin():void{
+		protected function unzipAdobeAIRSDK():void{
 			log("Unzipping: " + _adobeAIRSDKZipFile.nativePath);
 			unzip(_adobeAIRSDKZipFile,handleAdobeAIRSDKWinZipFileUnzipComplete);
 		}
