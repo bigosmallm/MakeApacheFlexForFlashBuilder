@@ -38,7 +38,7 @@ limitations under the License.
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   width="700" height="500"
-					   invoke="windowedapplication1_invokeHandler(event)" showStatusBar="false">
+					   invoke="applicationInvoked(event)" showStatusBar="false">
 <fx:Script>
 	<![CDATA[
 		
@@ -49,30 +49,33 @@ limitations under the License.
 		import org.as3commons.zip.ZipFile;
 			
 		/**
-		 * Edit these constants if you would like to download from alternative locations.
-		 * 
-		 * 
 		 * Apache Flex binary distribution
+		 * 
+		 * Values stored in ApacheFlexConfig.xml edit file to change
+		 * 
 		 */
-		private const APACHE_FLEX_BIN_DISTRO_FILE:String = "apache-flex-sdk-4.8.0-incubating-bin.zip";
-		private const APACHE_FLEX_BIN_DISTRO_URL:String = "http://people.apache.org/~cframpton/ApacheFlexRC/current/" + APACHE_FLEX_BIN_DISTRO_FILE;
+		private var APACHE_FLEX_BIN_DISTRO_FILE:String;
+		private var APACHE_FLEX_BIN_DISTRO_URL:String;
 			
 		/**
+		 * Adobe AIR SDK
 		 * 
-		 * Adobe AIR SDK Version 3.1
+		 * Values stored in ApacheFlexConfig.xml edit file to change
 		 * 
 		 */ 
-		private const ADOBE_AIR_SDK_WIN_FILE:String = "AdobeAIRSDK.zip"
-		private const ADOBE_AIR_SDK_WIN_URL:String = "http://airdownload.adobe.com/air/win/download/3.1/" + ADOBE_AIR_SDK_WIN_FILE;
-		private const ADOBE_AIR_SDK_MAC_FILE:String = "AdobeAIRSDK.tbz2";
-		private const ADOBE_AIR_SDK_MAC_URL:String = "http://airdownload.adobe.com/air/mac/download/3.1/" + ADOBE_AIR_SDK_MAC_FILE;
+		private var ADOBE_AIR_SDK_WIN_FILE:String;
+		private var ADOBE_AIR_SDK_WIN_URL:String;
+		private var ADOBE_AIR_SDK_MAC_FILE:String;
+		private var ADOBE_AIR_SDK_MAC_URL:String;
 		
 		/**
+		 * Adobe Flash Player
 		 * 
-		 * Adobe Flash Player Version 11.1
+		 * Values stored in ApacheFlexConfig.xml edit file to change
 		 * 
 		 */
-		private const ADOBE_FB_GLOBALPLAYER_SWC_URL:String = "http://fpdownload.macromedia.com/get/flashplayer/updaters/11/playerglobal11_1.swc"
+		private var ADOBE_FB_GLOBALPLAYER_SWC_FILE:String;
+		private var ADOBE_FB_GLOBALPLAYER_SWC_URL:String;
 			
 		private const APP_NAME:String = "MakeApacheFlexForFlashBuilder";
 		private const WINDOWS_OS:String = "windows";
@@ -87,12 +90,85 @@ limitations under the License.
 		private var _adobeAIRSDKZipFile:File;
 		private var _fbGlobalPlayerDir:File;
 		private var _os:String;
+		private var _loader:URLLoader;
 		
-		protected function windowedapplication1_invokeHandler(event:InvokeEvent):void
+		protected function applicationInvoked(event:InvokeEvent):void
 		{
 			_args = event.arguments;
+			loadXML();
+		}
+		
+		protected function loadXML():void
+		{
+			var request:URLRequest = new URLRequest("ApacheFlexConfig.xml");
+			
+			_loader = new URLLoader();
+			
+			try {
+				_loader.load(request);
+			}
+			catch (error:Error)
+			{
+				log("Error while trying to load XML config file: " + error.errorID + " " + error.message);
+			}
+			
+			_loader.addEventListener(IOErrorEvent.IO_ERROR, xmlError);
+			_loader.addEventListener(Event.COMPLETE, xmlLoaded);
+		}
+		
+		protected function xmlError(event:IOErrorEvent):void
+		{
+			log("IO error loading XML config file: " + event.errorID);
+		}
+		
+		protected function xmlLoaded(event:Event):void
+		{
 			setOSSpecificVariables();
-			main();
+			if (setXMLVariables()) {
+				main();
+			}
+		}
+		
+		protected function setXMLVariables():Boolean
+		{
+			var data:XML = XML(_loader.data);
+			var version:Number = Number(data.version.toString());
+			var files:XMLList = data.files.file;
+			var keepGoing:Boolean = true;
+			
+			APACHE_FLEX_BIN_DISTRO_FILE = files.(@name == 'ApacheFlexSDK').@file.toString();
+			APACHE_FLEX_BIN_DISTRO_URL = files.(@name == 'ApacheFlexSDK').@path.toString();
+			if (!APACHE_FLEX_BIN_DISTRO_FILE || !APACHE_FLEX_BIN_DISTRO_URL) {
+				log("Apache Flex SDK URL invalid in configuration file");
+				keepGoing = false;
+			}
+			APACHE_FLEX_BIN_DISTRO_URL += APACHE_FLEX_BIN_DISTRO_FILE;
+	
+			ADOBE_AIR_SDK_WIN_FILE = files.(@name == 'AdobeAIRSDKWin').@file.toString();
+			ADOBE_AIR_SDK_WIN_URL = files.(@name == 'AdobeAIRSDKWin').@path.toString();
+			if (_os == WINDOWS_OS && (!ADOBE_AIR_SDK_WIN_FILE || !ADOBE_AIR_SDK_WIN_URL)) {
+				log("Adobe AIR SDK URL for Mac invalid in configuration file");
+				keepGoing = false;
+			}
+			ADOBE_AIR_SDK_WIN_URL += ADOBE_AIR_SDK_WIN_FILE;
+			
+			ADOBE_AIR_SDK_MAC_FILE = files.(@name == 'AdobeAIRSDKMac').@file.toString();
+			ADOBE_AIR_SDK_MAC_URL = files.(@name == 'AdobeAIRSDKMac').@path.toString();
+			if (_os == MAC_OS && (!ADOBE_AIR_SDK_MAC_FILE || !ADOBE_AIR_SDK_MAC_URL)) {
+				log("Adobe AIR SDK URL for windows invalid in configuration file");
+				keepGoing = false;
+			}
+			ADOBE_AIR_SDK_MAC_URL += ADOBE_AIR_SDK_MAC_FILE;
+			
+			ADOBE_FB_GLOBALPLAYER_SWC_FILE =  files.(@name == 'FlashPlayer').@file.toString();
+			ADOBE_FB_GLOBALPLAYER_SWC_URL = files.(@name == 'FlashPlayer').@path.toString();
+			if (!ADOBE_FB_GLOBALPLAYER_SWC_FILE || !ADOBE_FB_GLOBALPLAYER_SWC_URL) {
+				log("Flash Player global player URL invalid in configuration file");
+				keepGoing = false;
+			}
+			ADOBE_FB_GLOBALPLAYER_SWC_URL += ADOBE_FB_GLOBALPLAYER_SWC_FILE;
+			
+			return keepGoing;
 		}
 		
 		protected function setOSSpecificVariables():void{
@@ -111,7 +187,7 @@ limitations under the License.
 		protected function main():void{
 			var isValidCommandLineInvocaton:Boolean = validateArguments();
 			if(isValidCommandLineInvocaton){
-				log(APP_NAME + " invoked in command line mode with the following arguments: " + _flexHome);
+				log("Invoked in command line mode with the following arguments: " + _flexHome);
 				setCommandLineState();
 				_flexSDKTxtInput.text = _flexHome;
 				install();
