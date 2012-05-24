@@ -33,6 +33,7 @@
 	<!-- <versionLabel></versionLabel> -->
 
 	<!-- Description, displayed in the AIR application installer.
+<<<<<<< HEAD
 	May have multiple values for each language. See samples or xsd schema file. Optional. -->
 	<!-- <description></description> -->
 
@@ -123,6 +124,99 @@
 	<!-- The subpath of the Programs menu to use. (Ignored on operating systems without a Programs menu.) Optional. -->
 	<!-- <programMenuFolder></programMenuFolder> -->
 
+=======
+	May have multiple values for each language. See samples or xsd schema file. Optional. -->
+	<!-- <description></description> -->
+
+	<!-- Copyright information. Optional -->
+	<!-- <copyright></copyright> -->
+
+	<!-- Publisher ID. Used if you're updating an application created prior to 1.5.3 -->
+	<!-- <publisherID></publisherID> -->
+
+	<!-- Settings for the application's initial window. Required. -->
+	<initialWindow>
+		<!-- The main SWF or HTML file of the application. Required. -->
+		<!-- Note: In Flash Builder, the SWF reference is set automatically. -->
+		<content>MakeApacheFlexForFlashBuilder.swf</content>
+		
+		<!-- The title of the main window. Optional. -->
+		<!-- <title></title> -->
+
+		<!-- The type of system chrome to use (either "standard" or "none"). Optional. Default standard. -->
+		<!-- <systemChrome></systemChrome> -->
+
+		<!-- Whether the window is transparent. Only applicable when systemChrome is none. Optional. Default false. -->
+		<!-- <transparent></transparent> -->
+
+		<!-- Whether the window is initially visible. Optional. Default false. -->
+		<!-- <visible></visible> -->
+
+		<!-- Whether the user can minimize the window. Optional. Default true. -->
+		<!-- <minimizable></minimizable> -->
+
+		<!-- Whether the user can maximize the window. Optional. Default true. -->
+		<!-- <maximizable></maximizable> -->
+
+		<!-- Whether the user can resize the window. Optional. Default true. -->
+		<!-- <resizable></resizable> -->
+
+		<!-- The window's initial width in pixels. Optional. -->
+		<!-- <width></width> -->
+
+		<!-- The window's initial height in pixels. Optional. -->
+		<!-- <height></height> -->
+
+		<!-- The window's initial x position. Optional. -->
+		<!-- <x></x> -->
+
+		<!-- The window's initial y position. Optional. -->
+		<!-- <y></y> -->
+
+		<!-- The window's minimum size, specified as a width/height pair in pixels, such as "400 200". Optional. -->
+		<!-- <minSize></minSize> -->
+
+		<!-- The window's initial maximum size, specified as a width/height pair in pixels, such as "1600 1200". Optional. -->
+		<!-- <maxSize></maxSize> -->
+
+        <!-- The initial aspect ratio of the app when launched (either "portrait" or "landscape"). Optional. Mobile only. Default is the natural orientation of the device -->
+
+        <!-- <aspectRatio></aspectRatio> -->
+
+        <!-- Whether the app will begin auto-orienting on launch. Optional. Mobile only. Default false -->
+
+        <!-- <autoOrients></autoOrients> -->
+
+        <!-- Whether the app launches in full screen. Optional. Mobile only. Default false -->
+
+        <!-- <fullScreen></fullScreen> -->
+
+        <!-- The render mode for the app (either auto, cpu, gpu, or direct). Optional. Default auto -->
+
+        <!-- <renderMode></renderMode> -->
+
+		<!-- Whether or not to pan when a soft keyboard is raised or lowered (either "pan" or "none").  Optional.  Defaults "pan." -->
+		<!-- <softKeyboardBehavior></softKeyboardBehavior> -->
+	<autoOrients>false</autoOrients>
+        <fullScreen>false</fullScreen>
+        <visible>false</visible>
+    </initialWindow>
+
+	<!-- We recommend omitting the supportedProfiles element, -->
+	<!-- which in turn permits your application to be deployed to all -->
+	<!-- devices supported by AIR. If you wish to restrict deployment -->
+	<!-- (i.e., to only mobile devices) then add this element and list -->
+	<!-- only the profiles which your application does support. -->
+	<!-- <supportedProfiles>desktop extendedDesktop mobileDevice extendedMobileDevice</supportedProfiles> -->
+	<supportedProfiles>extendedDesktop desktop</supportedProfiles>
+
+	<!-- The subpath of the standard default installation location to use. Optional. -->
+	<!-- <installFolder></installFolder> -->
+
+	<!-- The subpath of the Programs menu to use. (Ignored on operating systems without a Programs menu.) Optional. -->
+	<!-- <programMenuFolder></programMenuFolder> -->
+
+>>>>>>> aec82f54e34ae6fa9d9a71a821b7a680ef64e57c
 	<!-- The icon the system uses for the application. For at least one resolution,
 	specify the path to a PNG file included in the AIR package. Optional. -->
 	<!-- <icon>

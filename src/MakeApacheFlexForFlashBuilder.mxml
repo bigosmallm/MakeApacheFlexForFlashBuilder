@@ -89,6 +89,7 @@ limitations under the License.
 		private var _apacheFlexSDKZipFile:File;
 		private var _adobeAIRSDKZipFile:File;
 		private var _fbGlobalPlayerDir:File;
+		private var _fbGlobalPlayerFile:File;
 		private var _os:String;
 		private var _loader:URLLoader;
 		
@@ -128,7 +129,7 @@ limitations under the License.
 				main();
 			}
 		}
-		
+			
 		protected function setXMLVariables():Boolean
 		{
 			var data:XML = XML(_loader.data);
@@ -163,7 +164,7 @@ limitations under the License.
 			ADOBE_FB_GLOBALPLAYER_SWC_FILE =  files.(@name == 'FlashPlayer').@file.toString();
 			ADOBE_FB_GLOBALPLAYER_SWC_URL = files.(@name == 'FlashPlayer').@path.toString();
 			if (!ADOBE_FB_GLOBALPLAYER_SWC_FILE || !ADOBE_FB_GLOBALPLAYER_SWC_URL) {
-				log("Flash Player global player URL invalid in configuration file");
+				log("Flash Player global player swc URL invalid in configuration file");
 				keepGoing = false;
 			}
 			ADOBE_FB_GLOBALPLAYER_SWC_URL += ADOBE_FB_GLOBALPLAYER_SWC_FILE;
@@ -264,11 +265,11 @@ limitations under the License.
 		
 		protected function downloadApacheFlexSDK():void{
 			log("Downloading Apache Flex SDK from: " + APACHE_FLEX_BIN_DISTRO_URL);
-			download(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload);
+			_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
+			copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile);
 		}
 		
 		protected function handleApacheFlexSDKDownload(event:Event):void{
-			_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
 			var fs:FileStream = new FileStream(); 
 			fs.open(_apacheFlexSDKZipFile, FileMode.WRITE); 
 			fs.writeBytes(event.target.data); 
@@ -277,12 +278,31 @@ limitations under the License.
 			unzipApacheFlexSDK();
 		}
 		
-		protected function unzipApacheFlexSDK():void{
+		private var _process:NativeProcess;
+		
+		protected function unzipApacheFlexSDK():void
+		{
 			log("Unzipping: " + _apacheFlexSDKZipFile.nativePath);
-			unzip(_apacheFlexSDKZipFile,handleApacheFlexSDKZipFileUnzipComplete);
+			unzip(_apacheFlexSDKZipFile, handleApacheFlexSDKZipFileUnzipComplete);
 		}
 		
-		protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void{
+		protected function unTarFile(event:Event):void
+		{
+			var output:String = _process.standardOutput.readUTFBytes(_process.standardOutput.bytesAvailable);
+			
+			log(output);
+		}
+		
+		protected function unTarError(event:Event):void
+		{
+			var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
+			
+			log("Native Process error unable to untar Adobe AIR SDK ");
+			log(output);
+		}
+		
+		protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void
+		{
 			log("Finished unzipping: " + _apacheFlexSDKZipFile.nativePath);
 			if(_os == WINDOWS_OS){
 				downloadAIRRuntimeKitForWindows();
@@ -293,15 +313,15 @@ limitations under the License.
 		}
 		
 		protected function downloadAIRRuntimeKitForWindows():void{
-			log("Downloading Adobe AIR Runtime Kit for Windows  from: " + ADOBE_AIR_SDK_WIN_URL);
+			log("Downloading Adobe AIR Runtime Kit for Windows from: " + ADOBE_AIR_SDK_WIN_URL);
 			_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_WIN_FILE);
-			download(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload);
+			copyOrDownload(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
 		}
 		
 		protected function downloadAIRRuntimeKitForMac():void{
-			log("Downloading Adobe AIR Runtime Kit for MacOS  from: " + ADOBE_AIR_SDK_MAC_URL);
+			log("Downloading Adobe AIR Runtime Kit for Mac from: " + ADOBE_AIR_SDK_MAC_URL);
 			_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_MAC_FILE);
-			download(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload);
+			copyOrDownload(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
 		}
 		
 		protected function handleAIRSDKDownload(event:Event):void{
@@ -314,22 +334,60 @@ limitations under the License.
 		}
 		
 		protected function unzipAdobeAIRSDK():void{
-			log("Unzipping: " + _adobeAIRSDKZipFile.nativePath);
-			unzip(_adobeAIRSDKZipFile,handleAdobeAIRSDKWinZipFileUnzipComplete);
+			if (_os == WINDOWS_OS) {
+				log("Unzipping: " + _adobeAIRSDKZipFile.nativePath);
+				unzip(_adobeAIRSDKZipFile, handleAdobeAIRSDKWinZipFileUnzipComplete);
+			}
+			else if (_os == MAC_OS) {
+				if (NativeProcess.isSupported) {
+					var tar:File = new File("/usr/bin/tar");
+					var startupInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
+					var arguments:Vector.<String> = new Vector.<String>();
+					
+					arguments.push("xf");
+					arguments.push(_adobeAIRSDKZipFile.nativePath);
+					arguments.push("-C");
+					arguments.push(_flexHome);
+					
+					startupInfo.executable = tar;
+					startupInfo.arguments = arguments;
+					
+					_process = new NativeProcess();
+					_process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, unTarFile);
+					_process.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, unTarError);
+					_process.addEventListener(NativeProcessExitEvent.EXIT, finishedUntar);
+					_process.start(startupInfo);
+				}
+				else {
+					log("Native Process not supported unable to untar Adobe AIR SDK");
+				}
+			}
 		}
 		
-		protected function handleAdobeAIRSDKWinZipFileUnzipComplete(event:Event):void{
+		protected function finishedUntar(event:Event):void
+		{
+			log("Finished untaring: " + _adobeAIRSDKZipFile.nativePath);
+			
+			_process.closeInput();
+			_process.exit(true);
+			
+			downloadPlayerGlobalSWC();
+		}
+		
+		protected function handleAdobeAIRSDKWinZipFileUnzipComplete(event:Event):void
+		{
 			log("Finished unzipping: " + _adobeAIRSDKZipFile.nativePath);
 			downloadPlayerGlobalSWC();
 		}
 		
 		protected function downloadPlayerGlobalSWC():void{
-			log("Downloading Adobe Flash Player playerglobal.swc from: " + ADOBE_FB_GLOBALPLAYER_SWC_URL);
-			download(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload);
+			log("Installing       Adobe Flash Player playerglobal.swc from: " + ADOBE_FB_GLOBALPLAYER_SWC_URL);
+			_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
+			_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
+			copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile);
 		}
 		
 		protected function handlePlayerGlobalDownload(event:Event):void{
-			_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
 			var playerGlobalFile:File = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
 			var fs:FileStream = new FileStream();
 			fs.open(playerGlobalFile, FileMode.WRITE);
@@ -344,10 +402,10 @@ limitations under the License.
 			var configFilesDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "ide" + File.separator + "flashbuilder" + File.separator + "config");
 			var configFiles:Array = configFilesDir.getDirectoryListing();
 			var flexHomeFrameworksDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "frameworks");
-			for each (var f:File in configFiles){
-				if(isValidConfigFile(f)){
-					var copyToFile:File = flexHomeFrameworksDir.resolvePath(f.name);
-					f.copyTo(copyToFile,true);
+			for each (var file:File in configFiles){
+				if(isValidConfigFile(file)){
+					var copyToFile:File = flexHomeFrameworksDir.resolvePath(file.name);
+					file.copyTo(copyToFile,true);
 				}
 			}
 			
@@ -367,7 +425,25 @@ limitations under the License.
 			return dir;
 		}
 		
-		private function download(url:String,handlerFunction:Function):void{
+		private function copyOrDownload(url:String, handlerFunction:Function, dest:File):void
+		{
+			if (url.search("http") == 0) {
+				download(url, handlerFunction);
+			}
+			else {
+				var source:File = new File(url);
+				
+				try {
+					source.copyTo(dest, true);
+				}
+				catch (error:Error) {
+					log("Unable to copy file " + error.errorID + " " + error.message);
+				}
+			}
+		}
+		
+		private function download(url:String,handlerFunction:Function):void
+		{
 			var loader:URLLoader = new URLLoader(); 
 			loader.dataFormat = URLLoaderDataFormat.BINARY; 
 			loader.addEventListener(Event.COMPLETE, handlerFunction);
