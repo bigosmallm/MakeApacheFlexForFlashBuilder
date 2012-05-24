@@ -20,18 +20,15 @@ limitations under the License.
 
 
 <!--
-	This script should be used to create an Apache Flex SDK that has the
-    directory structure that the Adobe Flash Player IDE expects.
+This script should be used to create an Apache Flex SDK that has the
+directory structure that the Adobe Flash Builder IDE expects.
 
-	The Adobe AIR SDK and the Adobe Flash Player playerglobal.swc are integrated
-    into the directory structure.  The paths in the framework configuration files are 
-    modified to reflect this.  The AIR_HOME and PLAYERGLOBAL_HOME environment 
-    variables are not required because the locations of these pieces are known.
+The Adobe AIR SDK and the Adobe Flash Player playerglobal.swc are integrated
+into the directory structure.  The paths in the framework configuration files are 
+modified to reflect this.  The AIR_HOME and PLAYERGLOBAL_HOME environment 
+variables are not required because the locations of these pieces are known.
 
-	Usage: makeApacheFlexForFlashBuilder [sdk directory]
-
-	@author OmPrakash Muppirala (bigosmallm@gmail.com)
-	@author Justin Mclean (justin@classsoftware.com)
+Usage: makeApacheFlexForFlashBuilder [sdk directory]
 
 -->
 
@@ -48,7 +45,7 @@ limitations under the License.
 		import org.as3commons.zip.Zip;
 		import org.as3commons.zip.ZipEvent;
 		import org.as3commons.zip.ZipFile;
-			
+		
 		/**
 		 * Apache Flex binary distribution
 		 * 
@@ -57,7 +54,7 @@ limitations under the License.
 		 */
 		private var APACHE_FLEX_BIN_DISTRO_FILE:String;
 		private var APACHE_FLEX_BIN_DISTRO_URL:String;
-			
+		
 		/**
 		 * Adobe AIR SDK
 		 * 
@@ -77,7 +74,7 @@ limitations under the License.
 		 */
 		private var ADOBE_FB_GLOBALPLAYER_SWC_FILE:String;
 		private var ADOBE_FB_GLOBALPLAYER_SWC_URL:String;
-			
+		
 		private const APP_NAME:String = "MakeApacheFlexForFlashBuilder";
 		private const WINDOWS_OS:String = "windows";
 		private const MAC_OS:String = "mac";
@@ -130,7 +127,7 @@ limitations under the License.
 				main();
 			}
 		}
-			
+		
 		protected function setXMLVariables():Boolean
 		{
 			var data:XML = XML(_loader.data);
@@ -145,7 +142,7 @@ limitations under the License.
 				keepGoing = false;
 			}
 			APACHE_FLEX_BIN_DISTRO_URL += APACHE_FLEX_BIN_DISTRO_FILE;
-	
+			
 			ADOBE_AIR_SDK_WIN_FILE = files.(@name == 'AdobeAIRSDKWin').@file.toString();
 			ADOBE_AIR_SDK_WIN_URL = files.(@name == 'AdobeAIRSDKWin').@path.toString();
 			if (_os == WINDOWS_OS && (!ADOBE_AIR_SDK_WIN_FILE || !ADOBE_AIR_SDK_WIN_URL)) {
@@ -173,7 +170,8 @@ limitations under the License.
 			return keepGoing;
 		}
 		
-		protected function setOSSpecificVariables():void{
+		protected function setOSSpecificVariables():void
+		{
 			var operatingSystemStr:String = Capabilities.os;
 			if(operatingSystemStr.search("Mac OS") != -1){	//Mac OS
 				_os =  this.MAC_OS;
@@ -186,7 +184,8 @@ limitations under the License.
 			}
 		}
 		
-		protected function main():void{
+		protected function main():void
+		{
 			var isValidCommandLineInvocaton:Boolean = validateArguments();
 			if(isValidCommandLineInvocaton){
 				log("Invoked in command line mode with the following arguments: " + _flexHome);
@@ -210,16 +209,19 @@ limitations under the License.
 			}
 		}
 		
-		protected function install():void{
+		protected function install():void
+		{
 			createDirectories();
 			downloadApacheFlexSDK();
 		}
 		
-		protected function setCommandLineState():void{
+		protected function setCommandLineState():void
+		{
 			this.currentState = "commandLineState";
 		}
 		
-		protected function setGUIState():void{
+		protected function setGUIState():void
+		{
 			this.currentState = "guiState";
 		}
 		
@@ -227,7 +229,8 @@ limitations under the License.
 		 * If there is no argument, this is a GUI mode invocation
 		 * If there are multiple arguments, its most probably a directory path with spaces.  Concatenate all of them with spaces in between
 		 */
-		protected function validateArguments():Boolean{
+		protected function validateArguments():Boolean
+		{
 			if(_args.length == 0){
 				log(APP_NAME + " invoked in GUI mode");
 				log("Command line usage: " + APP_NAME + " [directory for Apache Flex SDK for Adobe Flash Builder]");
@@ -251,12 +254,14 @@ limitations under the License.
 			file.browseForDirectory("Select a directory"); 
 		}
 		
-		protected function flexSDKDirSelected(event:Event):void{
+		protected function flexSDKDirSelected(event:Event):void
+		{
 			_flexHome = File(event.target).nativePath;
 			_flexSDKTxtInput.text = _flexHome;
 		}
 		
-		protected function createDirectories():void{
+		protected function createDirectories():void
+		{
 			log("Creating flex home");
 			_flexHomeDir = createFolder(_flexHome);
 			log("Creating temp dir");
@@ -264,13 +269,15 @@ limitations under the License.
 			_flexTempDir = createFolder(_flexTemp);
 		}
 		
-		protected function downloadApacheFlexSDK():void{
+		protected function downloadApacheFlexSDK():void
+		{
 			log("Downloading Apache Flex SDK from: " + APACHE_FLEX_BIN_DISTRO_URL);
 			_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
 			copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile);
 		}
 		
-		protected function handleApacheFlexSDKDownload(event:Event):void{
+		protected function handleApacheFlexSDKDownload(event:Event):void
+		{
 			var fs:FileStream = new FileStream(); 
 			fs.open(_apacheFlexSDKZipFile, FileMode.WRITE); 
 			fs.writeBytes(event.target.data); 
@@ -298,19 +305,22 @@ limitations under the License.
 			}
 		}
 		
-		protected function downloadAIRRuntimeKitForWindows():void{
+		protected function downloadAIRRuntimeKitForWindows():void
+		{
 			log("Downloading Adobe AIR Runtime Kit for Windows from: " + ADOBE_AIR_SDK_WIN_URL);
 			_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_WIN_FILE);
 			copyOrDownload(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
 		}
 		
-		protected function downloadAIRRuntimeKitForMac():void{
+		protected function downloadAIRRuntimeKitForMac():void
+		{
 			log("Downloading Adobe AIR Runtime Kit for Mac from: " + ADOBE_AIR_SDK_MAC_URL);
 			_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_MAC_FILE);
 			copyOrDownload(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
 		}
 		
-		protected function handleAIRSDKDownload(event:Event):void{
+		protected function handleAIRSDKDownload(event:Event):void
+		{
 			var fs:FileStream = new FileStream();
 			fs.open(_adobeAIRSDKZipFile, FileMode.WRITE);
 			fs.writeBytes(event.target.data); 
@@ -319,7 +329,8 @@ limitations under the License.
 			unzipAdobeAIRSDK();
 		}
 		
-		protected function unzipAdobeAIRSDK():void{
+		protected function unzipAdobeAIRSDK():void
+		{
 			if (_os == WINDOWS_OS) {
 				log("Unzipping: " + _adobeAIRSDKZipFile.nativePath);
 				unzip(_adobeAIRSDKZipFile, handleAdobeAIRSDKWinZipFileUnzipComplete);
@@ -364,7 +375,7 @@ limitations under the License.
 			log("Native Process error unable to untar Adobe AIR SDK ");
 			log(output);
 		}
-
+		
 		
 		protected function finishedUntar(event:Event):void
 		{
@@ -382,14 +393,16 @@ limitations under the License.
 			downloadPlayerGlobalSWC();
 		}
 		
-		protected function downloadPlayerGlobalSWC():void{
+		protected function downloadPlayerGlobalSWC():void
+		{
 			log("Installing       Adobe Flash Player playerglobal.swc from: " + ADOBE_FB_GLOBALPLAYER_SWC_URL);
 			_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
 			_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
 			copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile);
 		}
 		
-		protected function handlePlayerGlobalDownload(event:Event):void{
+		protected function handlePlayerGlobalDownload(event:Event):void
+		{
 			var playerGlobalFile:File = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
 			var fs:FileStream = new FileStream();
 			fs.open(playerGlobalFile, FileMode.WRITE);
@@ -399,7 +412,8 @@ limitations under the License.
 			copyConfigFiles();
 		}
 		
-		protected function copyConfigFiles():void{
+		protected function copyConfigFiles():void
+		{
 			log("Installing frameworks config files configured for use with Adobe Flash Builder");
 			var configFilesDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "ide" + File.separator + "flashbuilder" + File.separator + "config");
 			var configFiles:Array = configFilesDir.getDirectoryListing();
@@ -414,14 +428,16 @@ limitations under the License.
 			cleanup();
 		}
 		
-		protected function cleanup():void{
+		protected function cleanup():void
+		{
 			_flexTempDir.deleteDirectory(true);
 			log("Installation complete.");
 		}
 		
 		/************************ Utility methods *****************/
-	
-		private function createFolder(path:String):File{
+		
+		private function createFolder(path:String):File
+		{
 			var dir:File = new File(path);
 			dir.createDirectory();
 			return dir;
@@ -456,7 +472,8 @@ limitations under the License.
 		}
 		
 		private var _previousDisplayedPercent:int=0;
-		private function handleDownloadProgress(event:ProgressEvent):void{
+		private function handleDownloadProgress(event:ProgressEvent):void
+		{
 			var bytesTotal:int = event.bytesTotal;
 			var bytesLoaded:int = event.bytesLoaded;
 			var percentLoaded:int = Math.round(bytesLoaded*100/bytesTotal);
@@ -466,11 +483,13 @@ limitations under the License.
 			}
 		}
 		
-		private function handleDownloadComplete(event:Event):void{
+		private function handleDownloadComplete(event:Event):void
+		{
 			_previousDisplayedPercent = 0;
 		}
 		
-		private function unzip(fileToUnzip:File, unzipCompleteFunction:Function):void{
+		private function unzip(fileToUnzip:File, unzipCompleteFunction:Function):void
+		{
 			var zipFileBytes:ByteArray = new ByteArray();
 			var fs:FileStream = new FileStream();
 			fs.open(fileToUnzip, FileMode.READ);
@@ -483,7 +502,8 @@ limitations under the License.
 			fzip.loadBytes(zipFileBytes);
 		}
 		
-		private function onFileLoaded(e:ZipEvent):void{
+		private function onFileLoaded(e:ZipEvent):void
+		{
 			var fzf:ZipFile = e.file;
 			if (fzf.sizeUncompressed == 0 && fzf.sizeCompressed == 0){ //Is a directory, not a file. Dont try to write anything into it.    
 				return;
@@ -495,13 +515,15 @@ limitations under the License.
 			fs.close();
 		}
 		
-		private function onUnzipComplete(e:Event):void{
+		private function onUnzipComplete(e:Event):void
+		{
 			var fzip:Zip = e.target as Zip;
 			fzip.removeEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
 			fzip.removeEventListener(Event.COMPLETE, onUnzipComplete);
 		}
-
-		private function isValidConfigFile(file:File):Boolean{
+		
+		private function isValidConfigFile(file:File):Boolean
+		{
 			var name:String = file.name;
 			if(name.search("-config.xml") == -1){
 				return false;
@@ -511,7 +533,8 @@ limitations under the License.
 			}
 		}
 		
-		private function log(text:String):void{
+		private function log(text:String):void
+		{
 			_logTxtArea.appendText("\n" + text);
 			_logTxtArea.validateNow();
 		}
