@@ -147,7 +147,7 @@ limitations under the License.
 			ADOBE_AIR_SDK_WIN_FILE = files.(@name == 'AdobeAIRSDKWin').@file.toString();
 			ADOBE_AIR_SDK_WIN_URL = files.(@name == 'AdobeAIRSDKWin').@path.toString();
 			if (_os == WINDOWS_OS && (!ADOBE_AIR_SDK_WIN_FILE || !ADOBE_AIR_SDK_WIN_URL)) {
-				log("Adobe AIR SDK URL for Mac invalid in configuration file");
+				log("Adobe AIR SDK URL for Windows invalid in configuration file");
 				keepGoing = false;
 			}
 			ADOBE_AIR_SDK_WIN_URL += ADOBE_AIR_SDK_WIN_FILE;
@@ -155,7 +155,7 @@ limitations under the License.
 			ADOBE_AIR_SDK_MAC_FILE = files.(@name == 'AdobeAIRSDKMac').@file.toString();
 			ADOBE_AIR_SDK_MAC_URL = files.(@name == 'AdobeAIRSDKMac').@path.toString();
 			if (_os == MAC_OS && (!ADOBE_AIR_SDK_MAC_FILE || !ADOBE_AIR_SDK_MAC_URL)) {
-				log("Adobe AIR SDK URL for windows invalid in configuration file");
+				log("Adobe AIR SDK URL for Mac invalid in configuration file");
 				keepGoing = false;
 			}
 			ADOBE_AIR_SDK_MAC_URL += ADOBE_AIR_SDK_MAC_FILE;

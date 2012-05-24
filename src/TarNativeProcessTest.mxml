@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx">
+	
+	<fx:Script>
+		<![CDATA[
+			private var _process:NativeProcess = new NativeProcess();
+			protected function handleInvokeBtnClick(event:MouseEvent):void
+			{
+				var file:File = File.userDirectory.resolvePath("C:\\Program Files (x86)\\GnuWin32\\bin\\tar.exe");
+				var nativeProcessStartupInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
+				nativeProcessStartupInfo.executable = file;
+				var args:Vector.<String> = new Vector.<String>;
+				//tar xf "/c/p/flex_os/workspace/MakeApacheFlexForFlashBuilder/downloads/AdobeAIRSDK.tbz2" -C "/c/p/flex_os/workspace/MakeApacheFlexForFlashBuilder/downloads/output" --force-local
+				args.push("xf");
+				args.push("c:\\p\\flex_os\\workspace\\MakeApacheFlexForFlashBuilder\\downloads\\AdobeAIRSDK.tbz2");
+				args.push("-C");
+				args.push("c:\\p\\flex_os\\workspace\\MakeApacheFlexForFlashBuilder\\downloads\\output");
+				args.push("--force-local");
+				nativeProcessStartupInfo.arguments = args;
+				_process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, onOutputData);
+				_process.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, onErrorData);
+				_process.addEventListener(NativeProcessExitEvent.EXIT, handleProcessComplete);
+				_process.start(nativeProcessStartupInfo);
+			}
+			
+			protected function onOutputData(event:ProgressEvent):void{
+				log(_process.standardOutput.readUTFBytes(_process.standardOutput.bytesAvailable));
+			}
+			
+			private function onErrorData(evt:ProgressEvent):void{
+				var errorData:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
+				log(errorData); 
+			}
+			
+			protected function handleProcessComplete(event:NativeProcessExitEvent):void{
+				log(event.exitCode.toString());
+				log("Unzipping completed");
+			}
+			
+			private function log(text:String):void{
+				_logTxtArea.appendText("\n" + text);
+				_logTxtArea.validateNow();
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:layout>
+		<s:VerticalLayout />
+	</s:layout>
+	<s:Button id="invokeBtn" label="Invoke" click="handleInvokeBtnClick(event)" />
+	<s:TextArea id="_logTxtArea" width="100%" height="100%" contentBackgroundColor="0x000000" color="0xFFFFFF" />
+</s:WindowedApplication>

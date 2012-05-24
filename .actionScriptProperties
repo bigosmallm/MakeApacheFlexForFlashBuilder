@@ -17,6 +17,9 @@
     <application path="MakeApacheFlexForFlashBuilder.mxml">
       <airExcludes/>
     </application>
+    <application path="TarNativeProcessTest.mxml">
+      <airExcludes/>
+    </application>
   </applications>
   <modules/>
   <buildCSSFiles/>
