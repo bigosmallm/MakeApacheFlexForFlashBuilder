@@ -287,21 +287,6 @@ limitations under the License.
 			unzip(_apacheFlexSDKZipFile, handleApacheFlexSDKZipFileUnzipComplete);
 		}
 		
-		protected function unTarFile(event:Event):void
-		{
-			var output:String = _process.standardOutput.readUTFBytes(_process.standardOutput.bytesAvailable);
-			
-			log(output);
-		}
-		
-		protected function unTarError(event:Event):void
-		{
-			var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
-			
-			log("Native Process error unable to untar Adobe AIR SDK ");
-			log(output);
-		}
-		
 		protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void
 		{
 			log("Finished unzipping: " + _apacheFlexSDKZipFile.nativePath);
@@ -364,6 +349,22 @@ limitations under the License.
 				}
 			}
 		}
+		
+		protected function unTarFile(event:Event):void
+		{
+			var output:String = _process.standardOutput.readUTFBytes(_process.standardOutput.bytesAvailable);
+			
+			log(output);
+		}
+		
+		protected function unTarError(event:Event):void
+		{
+			var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
+			
+			log("Native Process error unable to untar Adobe AIR SDK ");
+			log(output);
+		}
+
 		
 		protected function finishedUntar(event:Event):void
 		{
