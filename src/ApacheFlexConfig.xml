@@ -6,7 +6,7 @@
 		
 		<!-- Adobe AIR SDK -->
 		<file name="AdobeAIRSDKWin" path="http://airdownload.adobe.com/air/win/download/3.1/" file="AdobeAIRSDK.zip" />
-		<file name="AdobeAIRSDKMac" path="http://airdownload.adobe.com/air/win/download/3.1/" file="AdobeAIRSDK.tbz2" />
+		<file name="AdobeAIRSDKMac" path="http://airdownload.adobe.com/air/mac/download/3.1/" file="AdobeAIRSDK.tbz2" />
 		
 		<!-- Adobe Flash Player player global swc -->
 		<file name="FlashPlayer" path="http://fpdownload.macromedia.com/get/flashplayer/updaters/11/" file="playerglobal11_1.swc" />	
