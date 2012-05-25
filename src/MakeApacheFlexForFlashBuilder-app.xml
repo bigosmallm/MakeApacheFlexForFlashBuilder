@@ -46,7 +46,7 @@
 	<initialWindow>
 		<!-- The main SWF or HTML file of the application. Required. -->
 		<!-- Note: In Flash Builder, the SWF reference is set automatically. -->
-		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
+		<content>MakeApacheFlexForFlashBuilder.swf</content>
 		
 		<!-- The title of the main window. Optional. -->
 		<!-- <title></title> -->
@@ -116,7 +116,7 @@
 	<!-- (i.e., to only mobile devices) then add this element and list -->
 	<!-- only the profiles which your application does support. -->
 	<!-- <supportedProfiles>desktop extendedDesktop mobileDevice extendedMobileDevice</supportedProfiles> -->
-	<supportedProfiles>extendedDesktop</supportedProfiles> 
+	<supportedProfiles>extendedDesktop desktop</supportedProfiles> 
 
 	<!-- The subpath of the standard default installation location to use. Optional. -->
 	<!-- <installFolder></installFolder> -->

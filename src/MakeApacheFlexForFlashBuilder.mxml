@@ -286,8 +286,6 @@ Usage: makeApacheFlexForFlashBuilder [sdk directory]
 			unzipApacheFlexSDK();
 		}
 		
-		private var _process:NativeProcess;
-		
 		protected function unzipApacheFlexSDK():void
 		{
 			log("Unzipping: " + _apacheFlexSDKZipFile.nativePath);
@@ -329,6 +327,7 @@ Usage: makeApacheFlexForFlashBuilder [sdk directory]
 			unzipAdobeAIRSDK();
 		}
 		
+		private var _process:NativeProcess;
 		protected function unzipAdobeAIRSDK():void
 		{
 			if (_os == WINDOWS_OS) {
@@ -356,7 +355,7 @@ Usage: makeApacheFlexForFlashBuilder [sdk directory]
 					_process.start(startupInfo);
 				}
 				else {
-					log("Native Process not supported unable to untar Adobe AIR SDK");
+					log("Native Process not supported.  Unable to untar Adobe AIR SDK");
 				}
 			}
 		}
