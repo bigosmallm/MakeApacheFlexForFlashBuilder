@@ -28,7 +28,7 @@ into the directory structure.  The paths in the framework configuration files ar
 modified to reflect this.  The AIR_HOME and PLAYERGLOBAL_HOME environment 
 variables are not required because the locations of these pieces are known.
 
-Usage: makeApacheFlexForFlashBuilder [sdk directory]
+Command line usage: makeApacheFlexForFlashBuilder [sdk directory]
 
 -->
 
@@ -36,7 +36,7 @@ Usage: makeApacheFlexForFlashBuilder [sdk directory]
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   width="700" height="500"
-					   invoke="applicationInvoked(event)" showStatusBar="false">
+					   invoke="applicationInvoked(event)" showStatusBar="false" >
 <fx:Script>
 	<![CDATA[
 		

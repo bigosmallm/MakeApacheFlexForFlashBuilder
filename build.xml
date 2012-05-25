@@ -1,4 +1,23 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+<!--
+
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+-->
+
 <project name="MakeApacheFlexForFlashBuilder" basedir="." default="build">
 
     <!--location of property file -->
@@ -9,15 +28,70 @@
     <taskdef name="compc" classname="flex.ant.CompcTask" classpath="${FLEX_TASKS}"/>
     <taskdef name="asdoc" classname="flex.ant.AsDocTask" classpath="${FLEX_TASKS}"/>
 
-<!--	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/> -->
-
     <target name="build" description="compiles application">
         <antcall target="init"/>
-        <antcall target="packagenative"/>
         <antcall target="cleanup"/>
     </target>
+	
+    <target name="init" depends="determineOS, clean,createDirs" description="Creates the deploy folders and sets app extension">
+        <available file="${KEYSTORE}" property="CERTIFICATE_FLAG"/>
+	 	<antcall target="packagenative"/>
+	 	<antcall target="abortBuild"/>
+    </target>
+	
+	<target name="createDirs" unless="unsupportedOS">
+        <mkdir dir="${BUILD_DIR}"/>
+        <mkdir dir="${RELEASE_DIR}"/>
+	</target>
+	
+	 <target name="determineOS" description="Determine OS on which build is running so that we can create the correct native installer">
+	    <condition property="unsupportedOS">
+	       <and>   
+	          <os family="unix" />
+	          <not>
+	              <os family="mac" />
+	          </not>
+	       </and>
+	    </condition>
+	 	
+	    <condition property="extension" value="exe">
+	       <os family="windows" />
+	    </condition>
+	 	
+	    <condition property="extension" value="dmg">
+	          <os family="mac" />
+	    </condition>
+	    
+	 </target>
+	
+    <target name="packagenative" depends="compile, certificate, packageair" unless="unsupportedOS"
+        description="Packages the AIR file from the build directory to create a native installer (exe/dmg) file">
+        <java jar="${ADT}" fork="true"
+            failonerror="true"
+            maxmemory="512m">
+            <arg value="-package"/>
+        	<arg value="-target"/>
+        	<arg value="native"/>
+            <arg value="-storetype"/>
+            <arg value="${STORETYPE}"/>
+            <arg value="-keystore"/>
+            <arg value="${KEYSTORE}"/>
+            <arg value="-storepass"/>
+            <arg value="${CERT_PASSWORD}"/>
+            <arg value="${RELEASE_DIR}/${APP_NAME}.${extension}"/>
+            <arg value="${BUILD_DIR}/${APP_NAME}.air"/>
+        </java>
+    </target>
 
-    <target name="compile"
+	<target name="abortBuild" if="unsupportedOS">
+		<echo>Unable to create a .exe or a .dmg file on this operating system.</echo>
+		<echo>You must use ADT on the same operating system as that of the native installer file you want to generate. 
+			So, to create an EXE file for Windows, run this build on Windows. To create a DMG file for Mac OS, run this 
+			build on Mac OS. 
+		</echo>
+	</target>
+
+    <target name="compile"  unless="unsupportedOS"
         description="Compiles the AIR application to a SWF file and places SWF in a temp directory to be packaged.">
         <mxmlc file="${SOURCE_DIR}/${APP_NAME}.${APP_EXTENSION}"
             output="${BUILD_DIR}/${APP_NAME}.swf"
@@ -35,7 +109,7 @@
         </mxmlc>
     </target>
 
-    <target name="certificate" unless="CERTIFICATE_FLAG">
+    <target name="certificate" unless="CERTIFICATE_FLAG,unsupportedOS">
         <java jar="${ADT}" fork="true"
             failonerror="true">
             <arg value="-certificate"/>
@@ -53,7 +127,7 @@
         </java>
     </target>
 
-    <target name="packageair" depends="compile, certificate"
+    <target name="packageair" unless="unsupportedOS"
         description="Packages the build SWF file from a temp directory to create an AIR file">
         <java jar="${ADT}" fork="true"
             failonerror="true"
@@ -76,38 +150,7 @@
         </java>
     </target>
 	
-    <target name="packagenative" depends="compile, certificate, packageair"
-        description="Packages the AIR file from the build directory to create a native installer (exe/dmg) file">
-        <condition property="EXTENSION" value="${APP_EXTENSION_WIN}">
-            <os family="windows"/>
-        </condition>
-        <condition property="EXTENSION" value="${APP_EXTENSION_MAC}">
-            <os family="mac"/>
-        </condition>
-        <java jar="${ADT}" fork="true"
-            failonerror="true"
-            maxmemory="512m">
-            <arg value="-package"/>
-        	<arg value="-target"/>
-        	<arg value="native"/>
-            <arg value="-storetype"/>
-            <arg value="${STORETYPE}"/>
-            <arg value="-keystore"/>
-            <arg value="${KEYSTORE}"/>
-            <arg value="-storepass"/>
-            <arg value="${CERT_PASSWORD}"/>
-            <arg value="${RELEASE_DIR}/${APP_NAME}.${EXTENSION}"/>
-            <arg value="${BUILD_DIR}/${APP_NAME}.air"/>
-        </java>
-    </target>
-
-    <target name="init" depends="clean" description="Creates the deploy folders and sets app extension">
-        <mkdir dir="${BUILD_DIR}"/>
-        <mkdir dir="${RELEASE_DIR}"/>
-        <available file="${KEYSTORE}" property="CERTIFICATE_FLAG"/>
-    </target>
-
-    <target name="clean" description="Cleans up old files.">
+    <target name="clean" unless="unsupportedOS" description="Cleans up old files.">
         <delete dir="${BUILD_DIR}" failOnError="false" includeEmptyDirs="true" />
         <delete dir="${RELEASE_DIR}" failOnError="false" includeEmptyDirs="true" />
     </target>
