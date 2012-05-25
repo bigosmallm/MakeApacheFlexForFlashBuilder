@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="MakeApacheFlexForFlashBuilder" basedir="." default="build">
+
+    <!--location of property file -->
+    <property file="${basedir}/build.properties" description="Properities for MakeApacheFlexForFlashBuilder project" />
+
+    <!-- additional tasks -->
+    <taskdef name="mxmlc" classname="flex.ant.MxmlcTask" classpath="${FLEX_TASKS}"/>
+    <taskdef name="compc" classname="flex.ant.CompcTask" classpath="${FLEX_TASKS}"/>
+    <taskdef name="asdoc" classname="flex.ant.AsDocTask" classpath="${FLEX_TASKS}"/>
+
+<!--	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/> -->
+
+    <target name="build" description="compiles application">
+        <antcall target="init"/>
+        <antcall target="packagenative"/>
+        <antcall target="cleanup"/>
+    </target>
+
+    <target name="compile"
+        description="Compiles the AIR application to a SWF file and places SWF in a temp directory to be packaged.">
+        <mxmlc file="${SOURCE_DIR}/${APP_NAME}.${APP_EXTENSION}"
+            output="${BUILD_DIR}/${APP_NAME}.swf"
+            locale="${LOCALE}"
+            static-rsls="true"
+            accessible="true"
+            configname="air"
+            debug="${DEBUG_FLAG}"
+            failonerror="true"
+            fork="true"
+            maxmemory="512m">
+            <source-path path-element="${SOURCE_DIR}"/>
+            <external-library-path file="${FLEX_HOME}/frameworks/libs/air/airglobal.swc" append="true"/>
+            <library-path dir="${LIBRARY_DIR}" includes="*.swc" append="true"/>
+        </mxmlc>
+    </target>
+
+    <target name="certificate" unless="CERTIFICATE_FLAG">
+        <java jar="${ADT}" fork="true"
+            failonerror="true">
+            <arg value="-certificate"/>
+            <arg value="-cn"/>
+            <arg value="${CERT_NAME}"/>
+            <arg value="-ou"/>
+            <arg value="${CERT_ORG_UNIT}"/>
+            <arg value="-o"/>
+            <arg value="${CERT_ORG_NAME}"/>
+            <arg value="-c"/>
+            <arg value="${CERT_COUNTRY}"/>
+            <arg value="${CERT_KEY_TYPE}"/>
+            <arg value="${KEYSTORE}"/>
+            <arg value="${CERT_PASSWORD}"/>
+        </java>
+    </target>
+
+    <target name="packageair" depends="compile, certificate"
+        description="Packages the build SWF file from a temp directory to create an AIR file">
+        <java jar="${ADT}" fork="true"
+            failonerror="true"
+            maxmemory="512m">
+            <arg value="-package"/>
+            <arg value="-storetype"/>
+            <arg value="${STORETYPE}"/>
+            <arg value="-keystore"/>
+            <arg value="${KEYSTORE}"/>
+            <arg value="-storepass"/>
+            <arg value="${CERT_PASSWORD}"/>
+            <arg value="${BUILD_DIR}/${APP_NAME}.air"/>
+            <arg value="${SOURCE_DIR}/${APP_NAME}-app.xml"/>
+            <arg value="-C"/>
+            <arg value="${BUILD_DIR}"/>
+            <arg value="${BUILD_DIR}/${APP_NAME}.swf"/>
+        	<arg value="-C"/>
+        	<arg value="${SOURCE_DIR}"/>
+        	<arg value="${SOURCE_DIR}/${APP_CONFIG_XML_NAME}.xml"/>
+        </java>
+    </target>
+	
+    <target name="packagenative" depends="compile, certificate, packageair"
+        description="Packages the AIR file from the build directory to create a native installer (exe/dmg) file">
+        <condition property="EXTENSION" value="${APP_EXTENSION_WIN}">
+            <os family="windows"/>
+        </condition>
+        <condition property="EXTENSION" value="${APP_EXTENSION_MAC}">
+            <os family="mac"/>
+        </condition>
+        <java jar="${ADT}" fork="true"
+            failonerror="true"
+            maxmemory="512m">
+            <arg value="-package"/>
+        	<arg value="-target"/>
+        	<arg value="native"/>
+            <arg value="-storetype"/>
+            <arg value="${STORETYPE}"/>
+            <arg value="-keystore"/>
+            <arg value="${KEYSTORE}"/>
+            <arg value="-storepass"/>
+            <arg value="${CERT_PASSWORD}"/>
+            <arg value="${RELEASE_DIR}/${APP_NAME}.${EXTENSION}"/>
+            <arg value="${BUILD_DIR}/${APP_NAME}.air"/>
+        </java>
+    </target>
+
+    <target name="init" depends="clean" description="Creates the deploy folders and sets app extension">
+        <mkdir dir="${BUILD_DIR}"/>
+        <mkdir dir="${RELEASE_DIR}"/>
+        <available file="${KEYSTORE}" property="CERTIFICATE_FLAG"/>
+    </target>
+
+    <target name="clean" description="Cleans up old files.">
+        <delete dir="${BUILD_DIR}" failOnError="false" includeEmptyDirs="true" />
+        <delete dir="${RELEASE_DIR}" failOnError="false" includeEmptyDirs="true" />
+    </target>
+
+    <target name="cleanup" description="Cleans up old files.">
+        <delete dir="${BUILD_DIR}" failOnError="false" includeEmptyDirs="true" />
+    </target>
+
+</project>
