@@ -44,25 +44,22 @@
         <mkdir dir="${RELEASE_DIR}"/>
 	</target>
 	
-	 <target name="determineOS" description="Determine OS on which build is running so that we can create the correct native installer">
-	    <condition property="unsupportedOS">
-	       <and>   
-	          <os family="unix" />
-	          <not>
-	              <os family="mac" />
-	          </not>
+	<target name="determineOS" description="Determine OS on which build is running so that we can create the correct native installer">
+		<condition property="unsupportedOS">
+			<and>   
+				<os family="unix" />
+				<not>
+					<os family="mac" />
+				</not>
 	       </and>
-	    </condition>
-	 	
-	    <condition property="extension" value="exe">
-	       <os family="windows" />
-	    </condition>
-	 	
-	    <condition property="extension" value="dmg">
-	          <os family="mac" />
-	    </condition>
-	    
-	 </target>
+		</condition>
+		<condition property="extension" value="exe">
+			<os family="windows" />
+		</condition>
+		<condition property="extension" value="dmg">
+			<os family="mac" />
+		</condition>
+	</target>
 	
     <target name="packagenative" depends="compile, certificate, packageair" unless="unsupportedOS"
         description="Packages the AIR file from the build directory to create a native installer (exe/dmg) file">
