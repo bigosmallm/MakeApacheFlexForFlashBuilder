@@ -144,6 +144,7 @@
 			<arg value="-C"/>
 			<arg value="${SOURCE_DIR}"/>
 			<arg value="${SOURCE_DIR}/${APP_CONFIG_XML_NAME}.xml"/>
+			<arg value="${ICONS_DIR}"/>
 		</java>
 	</target>
 	
