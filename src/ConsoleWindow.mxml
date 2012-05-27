@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Window xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  title="Install Log" width="600" height="400" backgroundColor="0x000000">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+		
+			[Bindable] public var messages:ArrayCollection = new ArrayCollection();
+			
+			protected function closeWindow(event:MouseEvent):void
+			{
+				close();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:VerticalLayout gap="0" />
+	</s:layout>
+	
+	<s:List id="logTxtArea" dataProvider="{messages}" width="100%" height="100%" contentBackgroundColor="0x000000" color="0xFFFFFF">
+		<s:layout>
+			<s:VerticalLayout gap="0" horizontalAlign="justify" />
+		</s:layout>
+	</s:List>
+	
+	<s:HGroup width="100%" paddingRight="10">
+		<s:Rect width="100%" />
+		<s:Button label="Close" click="closeWindow(event)" />
+	</s:HGroup>
+</s:Window>
