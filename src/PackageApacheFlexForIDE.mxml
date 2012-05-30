@@ -21,14 +21,14 @@ limitations under the License.
 
 <!--
 This script should be used to create an Apache Flex SDK that has the
-directory structure that the Adobe Flash Builder IDE expects.
+directory structure that an IDE expects.
 
 The Adobe AIR SDK and the Adobe Flash Player playerglobal.swc are integrated
 into the directory structure.  The paths in the framework configuration files are 
 modified to reflect this.  The AIR_HOME and PLAYERGLOBAL_HOME environment 
 variables are not required because the locations of these pieces are known.
 
-Command line usage: makeApacheFlexForFlashBuilder [sdk directory]
+Command line usage: packageApacheFlexForIDE [sdk directory]
 
 -->
 
@@ -36,7 +36,7 @@ Command line usage: makeApacheFlexForFlashBuilder [sdk directory]
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   width="600" height="400"
-					   backgroundColor="0xDDDDDD" title="Convert Apache Flex SDK for use in Flash Builder"
+					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
 					   invoke="applicationInvoked(event)" showStatusBar="false">
 	<fx:Script>
 		<![CDATA[	
@@ -77,7 +77,7 @@ Command line usage: makeApacheFlexForFlashBuilder [sdk directory]
 			private var ADOBE_FB_GLOBALPLAYER_SWC_FILE:String;
 			private var ADOBE_FB_GLOBALPLAYER_SWC_URL:String;
 			
-			private const APP_NAME:String = "MakeApacheFlexForFlashBuilder";
+			private const APP_NAME:String = "PackageApacheFlexForIDE";
 			private const WINDOWS_OS:String = "windows";
 			private const MAC_OS:String = "mac";
 			
@@ -255,7 +255,7 @@ Command line usage: makeApacheFlexForFlashBuilder [sdk directory]
 				if (_args.length == 0)
 				{
 					log(APP_NAME + " invoked in GUI mode");
-					log("Command line usage: " + APP_NAME + " [directory for Apache Flex SDK for Adobe Flash Builder]");
+					log("Command line usage: " + APP_NAME + " [directory of Apache Flex SDK]");
 					
 					return false;
 				}
@@ -410,7 +410,7 @@ Command line usage: makeApacheFlexForFlashBuilder [sdk directory]
 			{
 				var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
 				
-				log("Native Process error unable to untar Adobe AIR SDK ");
+				log("Native Process error unable to untar Adobe AIR SDK");
 				log(output);
 			}
 			
@@ -433,7 +433,7 @@ Command line usage: makeApacheFlexForFlashBuilder [sdk directory]
 			
 			protected function downloadPlayerGlobalSWC():void
 			{
-				log("Installing       Adobe Flash Player playerglobal.swc from: " + ADOBE_FB_GLOBALPLAYER_SWC_URL);
+				log("Installing Adobe Flash Player playerglobal.swc from: " + ADOBE_FB_GLOBALPLAYER_SWC_URL);
 				_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
 				_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
 				copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile);
@@ -457,7 +457,7 @@ Command line usage: makeApacheFlexForFlashBuilder [sdk directory]
 				var configFiles:Array = configFilesDir.getDirectoryListing();
 				var flexHomeFrameworksDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "frameworks");
 				
-				log("Installing frameworks config files configured for use with Adobe Flash Builder");
+				log("Installing frameworks config files configured for use with an IDE");
 				
 				for each (var file:File in configFiles)
 				{
