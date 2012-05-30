@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+
+
+<!--
+This script should be used to create an Apache Flex SDK that has the
+directory structure that an IDE expects.
+
+The Adobe AIR SDK and the Adobe Flash Player playerglobal.swc are integrated
+into the directory structure.  The paths in the framework configuration files are 
+modified to reflect this.  The AIR_HOME and PLAYERGLOBAL_HOME environment 
+variables are not required because the locations of these pieces are known.
+
+Command line usage: packageApacheFlexForIDE [sdk directory]
+
+-->
+
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   width="600" height="400"
+					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
+					   invoke="applicationInvoked(event)" showStatusBar="false">
+	<fx:Script>
+		<![CDATA[	
+			import mx.collections.ArrayCollection;
+
+			import org.as3commons.zip.Zip;
+			import org.as3commons.zip.ZipEvent;
+			import org.as3commons.zip.ZipFile;
+			
+			import spark.components.Window;
+			
+			/**
+			 * Apache Flex binary distribution
+			 * 
+			 * Values stored in ApacheFlexConfig.xml edit file to change
+			 * 
+			 */
+			private var APACHE_FLEX_BIN_DISTRO_FILE:String;
+			private var APACHE_FLEX_BIN_DISTRO_URL:String;
+			
+			/**
+			 * Adobe AIR SDK
+			 * 
+			 * Values stored in ApacheFlexConfig.xml edit file to change
+			 * 
+			 */ 
+			private var ADOBE_AIR_SDK_WIN_FILE:String;
+			private var ADOBE_AIR_SDK_WIN_URL:String;
+			private var ADOBE_AIR_SDK_MAC_FILE:String;
+			private var ADOBE_AIR_SDK_MAC_URL:String;
+			
+			/**
+			 * Adobe Flash Player
+			 * 
+			 * Values stored in ApacheFlexConfig.xml edit file to change
+			 * 
+			 */
+			private var ADOBE_FB_GLOBALPLAYER_SWC_FILE:String;
+			private var ADOBE_FB_GLOBALPLAYER_SWC_URL:String;
+			
+			private const APP_NAME:String = "PackageApacheFlexForIDE";
+			private const WINDOWS_OS:String = "windows";
+			private const MAC_OS:String = "mac";
+			
+			private var _args:Array;
+			private var _flexHome:String;
+			private var _flexTemp:String;
+			private var _flexHomeDir:File;
+			private var _flexTempDir:File;
+			private var _apacheFlexSDKZipFile:File;
+			private var _adobeAIRSDKZipFile:File;
+			private var _fbGlobalPlayerDir:File;
+			private var _fbGlobalPlayerFile:File;
+			private var _os:String;
+			private var _loader:URLLoader;	
+			private var _process:NativeProcess;
+			private var _previousDisplayedPercent:int = 0;
+			
+			[Bindable] private var _messages:ArrayCollection = new ArrayCollection();
+			
+			protected function applicationInvoked(event:InvokeEvent):void
+			{
+				_args = event.arguments;
+				loadXML();
+			}
+			
+			protected function loadXML():void
+			{
+				var request:URLRequest = new URLRequest("ApacheFlexConfig.xml");
+				
+				_loader = new URLLoader();
+				
+				try
+				{
+					_loader.load(request);
+				}
+				catch (error:Error)
+				{
+					log("Error while trying to load XML config file: " + error.errorID + " " + error.message);
+				}
+				
+				_loader.addEventListener(IOErrorEvent.IO_ERROR, xmlError);
+				_loader.addEventListener(Event.COMPLETE, xmlLoaded);
+			}
+			
+			protected function xmlError(event:IOErrorEvent):void
+			{
+				log("IO error loading XML config file: " + event.errorID);
+			}
+			
+			protected function xmlLoaded(event:Event):void
+			{
+				setOSSpecificVariables();
+				if (setXMLVariables())
+				{
+					main();
+				}
+			}
+			
+			protected function setXMLVariables():Boolean
+			{
+				var data:XML = XML(_loader.data);
+				var version:Number = Number(data.version.toString());
+				var files:XMLList = data.files.file;
+				var keepGoing:Boolean = true;
+				
+				APACHE_FLEX_BIN_DISTRO_FILE = files.(@name == 'ApacheFlexSDK').@file.toString();
+				APACHE_FLEX_BIN_DISTRO_URL = files.(@name == 'ApacheFlexSDK').@path.toString();
+				if (!APACHE_FLEX_BIN_DISTRO_FILE || !APACHE_FLEX_BIN_DISTRO_URL)
+				{
+					log("Apache Flex SDK URL invalid in configuration file");
+					keepGoing = false;
+				}
+				APACHE_FLEX_BIN_DISTRO_URL += APACHE_FLEX_BIN_DISTRO_FILE;
+				
+				ADOBE_AIR_SDK_WIN_FILE = files.(@name == 'AdobeAIRSDKWin').@file.toString();
+				ADOBE_AIR_SDK_WIN_URL = files.(@name == 'AdobeAIRSDKWin').@path.toString();
+				if (_os == WINDOWS_OS && (!ADOBE_AIR_SDK_WIN_FILE || !ADOBE_AIR_SDK_WIN_URL))
+				{
+					log("Adobe AIR SDK URL for Windows invalid in configuration file");
+					keepGoing = false;
+				}
+				ADOBE_AIR_SDK_WIN_URL += ADOBE_AIR_SDK_WIN_FILE;
+				
+				ADOBE_AIR_SDK_MAC_FILE = files.(@name == 'AdobeAIRSDKMac').@file.toString();
+				ADOBE_AIR_SDK_MAC_URL = files.(@name == 'AdobeAIRSDKMac').@path.toString();
+				if (_os == MAC_OS && (!ADOBE_AIR_SDK_MAC_FILE || !ADOBE_AIR_SDK_MAC_URL))
+				{
+					log("Adobe AIR SDK URL for Mac invalid in configuration file");
+					keepGoing = false;
+				}
+				ADOBE_AIR_SDK_MAC_URL += ADOBE_AIR_SDK_MAC_FILE;
+				
+				ADOBE_FB_GLOBALPLAYER_SWC_FILE =  files.(@name == 'FlashPlayer').@file.toString();
+				ADOBE_FB_GLOBALPLAYER_SWC_URL = files.(@name == 'FlashPlayer').@path.toString();
+				if (!ADOBE_FB_GLOBALPLAYER_SWC_FILE || !ADOBE_FB_GLOBALPLAYER_SWC_URL)
+				{
+					log("Flash Player global player swc URL invalid in configuration file");
+					keepGoing = false;
+				}
+				ADOBE_FB_GLOBALPLAYER_SWC_URL += ADOBE_FB_GLOBALPLAYER_SWC_FILE;
+				
+				return keepGoing;
+			}
+			
+			protected function setOSSpecificVariables():void
+			{
+				var operatingSystemStr:String = Capabilities.os;
+				
+				if (operatingSystemStr.search("Mac OS") != -1)
+				{
+					_os =  MAC_OS;
+				}
+				else if (operatingSystemStr.search("Windows") != -1)
+				{
+					_os = WINDOWS_OS;
+				}
+				else {
+					log("Unsupported operating system");
+				}
+			}
+			
+			protected function main():void
+			{
+				var isValidCommandLineInvocaton:Boolean = validateArguments();
+				
+				if (isValidCommandLineInvocaton)
+				{
+					log("Invoked in command line mode with the following arguments: " + _flexHome);
+					setCommandLineState();
+					flexSDKTxtInput.text = _flexHome;
+					install();
+				}
+				else
+				{
+					setGUIState();
+				}
+			}
+			
+			protected function installSDK(event:MouseEvent):void
+			{
+				if (flexSDKTxtInput.text == "")
+				{
+					log("Please enter valid directory path for the Flex SDK");
+				}
+				else
+				{
+					installBtn.enabled = false;
+					_flexHome = flexSDKTxtInput.text;
+					install();
+				}
+			}
+			
+			protected function install():void
+			{
+				createDirectories();
+				downloadApacheFlexSDK();
+			}
+			
+			protected function setCommandLineState():void
+			{
+				currentState = "commandLineState";
+			}
+			
+			protected function setGUIState():void
+			{
+				currentState = "guiState";
+			}
+			
+			/**
+			 * If there is no argument, this is a GUI mode invocation
+			 * If there are multiple arguments, its most probably a directory path with spaces.  Concatenate all of them with spaces in between
+			 */
+			protected function validateArguments():Boolean
+			{
+				if (_args.length == 0)
+				{
+					log(APP_NAME + " invoked in GUI mode");
+					log("Command line usage: " + APP_NAME + " [directory of Apache Flex SDK]");
+					
+					return false;
+				}
+				
+				if (_args.length > 1)
+				{
+					_flexHome = _args.join(" "); 
+					return true;
+				}
+				
+				if (_args.length == 1)
+				{
+					_flexHome = _args[0];
+					return true;
+				}
+				
+				return false;
+			}
+			
+			// TODO Scan for Apache SDKs installed and check if allready modified?
+			protected function browseForSDK(event:MouseEvent):void
+			{
+				var file:File = new File(); 
+				
+				file.addEventListener(Event.SELECT, flexSDKDirSelected); 
+				file.browseForDirectory("Select a directory"); 
+			}
+			
+			protected function flexSDKDirSelected(event:Event):void
+			{
+				_flexHome = File(event.target).nativePath;
+				flexSDKTxtInput.text = _flexHome;
+				installBtn.enabled = true;
+			}
+			
+			protected function createDirectories():void
+			{
+				log("Creating flex home");
+				_flexHomeDir = createFolder(_flexHome);
+				log("Creating temp dir");
+				_flexTemp = _flexHome + File.separator + "temp";
+				_flexTempDir = createFolder(_flexTemp);
+			}
+			
+			protected function downloadApacheFlexSDK():void
+			{
+				log("Downloading Apache Flex SDK from: " + APACHE_FLEX_BIN_DISTRO_URL);
+				_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
+				copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile);
+			}
+			
+			protected function handleApacheFlexSDKDownload(event:Event):void
+			{
+				var fs:FileStream = new FileStream(); 
+				
+				fs.open(_apacheFlexSDKZipFile, FileMode.WRITE); 
+				fs.writeBytes(event.target.data); 
+				fs.close();
+				
+				unzipApacheFlexSDK();
+			}
+			
+			protected function unzipApacheFlexSDK():void
+			{
+				log("Unzipping: " + _apacheFlexSDKZipFile.nativePath);
+				unzip(_apacheFlexSDKZipFile, handleApacheFlexSDKZipFileUnzipComplete);
+			}
+			
+			protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void
+			{
+				log("Finished unzipping: " + _apacheFlexSDKZipFile.nativePath);
+				
+				if (_os == WINDOWS_OS)
+				{
+					downloadAIRRuntimeKitForWindows();
+				}
+				else if (_os == MAC_OS)
+				{ 
+					downloadAIRRuntimeKitForMac();
+				}
+			}
+			
+			protected function downloadAIRRuntimeKitForWindows():void
+			{
+				log("Downloading Adobe AIR Runtime Kit for Windows from: " + ADOBE_AIR_SDK_WIN_URL);
+				_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_WIN_FILE);
+				copyOrDownload(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
+			}
+			
+			protected function downloadAIRRuntimeKitForMac():void
+			{
+				log("Downloading Adobe AIR Runtime Kit for Mac from: " + ADOBE_AIR_SDK_MAC_URL);
+				_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_MAC_FILE);
+				copyOrDownload(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
+			}
+			
+			protected function handleAIRSDKDownload(event:Event):void
+			{
+				var fs:FileStream = new FileStream();
+				
+				fs.open(_adobeAIRSDKZipFile, FileMode.WRITE);
+				fs.writeBytes(event.target.data); 
+				fs.close();
+				
+				unzipAdobeAIRSDK();
+			}
+			
+			protected function unzipAdobeAIRSDK():void
+			{
+				if (_os == WINDOWS_OS)
+				{
+					log("Unzipping: " + _adobeAIRSDKZipFile.nativePath);
+					unzip(_adobeAIRSDKZipFile, handleAdobeAIRSDKWinZipFileUnzipComplete);
+				}
+				else if (_os == MAC_OS)
+				{
+					if (NativeProcess.isSupported)
+					{
+						var tar:File = new File("/usr/bin/tar");
+						var startupInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
+						var arguments:Vector.<String> = new Vector.<String>();
+						
+						arguments.push("xf");
+						arguments.push(_adobeAIRSDKZipFile.nativePath);
+						arguments.push("-C");
+						arguments.push(_flexHome);
+						
+						startupInfo.executable = tar;
+						startupInfo.arguments = arguments;
+						
+						_process = new NativeProcess();
+						_process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, unTarFile);
+						_process.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, unTarError);
+						_process.addEventListener(NativeProcessExitEvent.EXIT, finishedUntar);
+						_process.start(startupInfo);
+					}
+					else
+					{
+						log("Native Process not supported.  Unable to untar Adobe AIR SDK");
+					}
+				}
+			}
+			
+			protected function unTarFile(event:Event):void
+			{
+				var output:String = _process.standardOutput.readUTFBytes(_process.standardOutput.bytesAvailable);
+				
+				log(output);
+			}
+			
+			protected function unTarError(event:Event):void
+			{
+				var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
+				
+				log("Native Process error unable to untar Adobe AIR SDK");
+				log(output);
+			}
+			
+			
+			protected function finishedUntar(event:Event):void
+			{
+				log("Finished untaring: " + _adobeAIRSDKZipFile.nativePath);
+				
+				_process.closeInput();
+				_process.exit(true);
+				
+				downloadPlayerGlobalSWC();
+			}
+			
+			protected function handleAdobeAIRSDKWinZipFileUnzipComplete(event:Event):void
+			{
+				log("Finished unzipping: " + _adobeAIRSDKZipFile.nativePath);
+				downloadPlayerGlobalSWC();
+			}
+			
+			protected function downloadPlayerGlobalSWC():void
+			{
+				log("Installing Adobe Flash Player playerglobal.swc from: " + ADOBE_FB_GLOBALPLAYER_SWC_URL);
+				_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
+				_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
+				copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile);
+			}
+			
+			protected function handlePlayerGlobalDownload(event:Event):void
+			{
+				var playerGlobalFile:File = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
+				var fs:FileStream = new FileStream();
+				
+				fs.open(playerGlobalFile, FileMode.WRITE);
+				fs.writeBytes(event.target.data); 
+				fs.close();
+				
+				copyConfigFiles();
+			}
+			
+			protected function copyConfigFiles():void
+			{
+				var configFilesDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "ide" + File.separator + "flashbuilder" + File.separator + "config");
+				var configFiles:Array = configFilesDir.getDirectoryListing();
+				var flexHomeFrameworksDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "frameworks");
+				
+				log("Installing frameworks config files configured for use with an IDE");
+				
+				for each (var file:File in configFiles)
+				{
+					if (isValidConfigFile(file))
+					{
+						var copyToFile:File = flexHomeFrameworksDir.resolvePath(file.name);
+						file.copyTo(copyToFile,true);
+					}
+				}
+				
+				cleanup();
+			}
+			
+			protected function cleanup():void
+			{
+				_flexTempDir.deleteDirectory(true);
+				log("Installation complete.");
+			}
+			
+			/************************ Utility methods *****************/
+			
+			private function createFolder(path:String):File
+			{
+				var dir:File = new File(path);
+				dir.createDirectory();
+				return dir;
+			}
+			
+			private function copyOrDownload(url:String, handlerFunction:Function, dest:File):void
+			{
+				if (url.search("http") == 0)
+				{
+					download(url, handlerFunction);
+				}
+				else
+				{
+					var source:File = new File(url);
+					
+					try
+					{
+						source.copyTo(dest, true);
+					}
+					catch (error:Error)
+					{
+						log("Unable to copy file " + error.errorID + " " + error.message);
+					}
+				}
+			}
+			
+			private function download(url:String, handlerFunction:Function):void
+			{
+				var loader:URLLoader = new URLLoader();
+				var req:URLRequest = new URLRequest(url);
+				
+				loader.dataFormat = URLLoaderDataFormat.BINARY; 
+				loader.addEventListener(Event.COMPLETE, handlerFunction);
+				loader.addEventListener(Event.COMPLETE, handleDownloadComplete);
+				loader.addEventListener(ProgressEvent.PROGRESS, handleDownloadProgress);
+				
+				loader.load(req);
+			}
+			
+			private function handleDownloadProgress(event:ProgressEvent):void
+			{
+				var bytesTotal:int = event.bytesTotal;
+				var bytesLoaded:int = event.bytesLoaded;
+				var percentLoaded:int = Math.round(bytesLoaded*100/bytesTotal);
+				
+				// show count in command line progress bar in gui
+				if (currentState == "commandLineState" && percentLoaded % 10 == 0 && percentLoaded != _previousDisplayedPercent)
+				{
+					log("Downloaded " + percentLoaded + "%");
+					_previousDisplayedPercent = percentLoaded;
+				}
+				else {
+					progressBar.setProgress(percentLoaded, 100);
+				}
+			}
+			
+			private function handleDownloadComplete(event:Event):void
+			{
+				_previousDisplayedPercent = 0;
+			}
+			
+			private function unzip(fileToUnzip:File, unzipCompleteFunction:Function):void
+			{
+				var zipFileBytes:ByteArray = new ByteArray();
+				var fs:FileStream = new FileStream();
+				var fzip:Zip = new Zip();
+				
+				fs.open(fileToUnzip, FileMode.READ);
+				fs.readBytes(zipFileBytes);
+				fs.close();
+	
+				fzip.addEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
+				fzip.addEventListener(Event.COMPLETE, unzipCompleteFunction);
+				fzip.addEventListener(Event.COMPLETE, onUnzipComplete);
+				fzip.loadBytes(zipFileBytes);
+			}
+			
+			private function onFileLoaded(e:ZipEvent):void
+			{
+				var fzf:ZipFile = e.file;
+				var f:File = _flexHomeDir.resolvePath(fzf.filename);
+				var fs:FileStream = new FileStream();
+				
+				if (fzf.sizeUncompressed == 0 && fzf.sizeCompressed == 0)
+				{
+					// Is a directory, not a file. Dont try to write anything into it.    
+					return;
+				}
+	
+				fs.open(f, FileMode.WRITE);
+				fs.writeBytes(fzf.content);
+				fs.close();
+			}
+			
+			private function onUnzipComplete(e:Event):void
+			{
+				var fzip:Zip = e.target as Zip;
+				
+				fzip.removeEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
+				fzip.removeEventListener(Event.COMPLETE, onUnzipComplete);
+			}
+			
+			private function isValidConfigFile(file:File):Boolean
+			{
+				var name:String = file.name;
+				
+				if (name.search("-config.xml") == -1) {
+					return false;
+				}
+				else {
+					return true;
+				}
+			}
+			
+			private function log(text:String):void
+			{
+				_messages.addItem(text);
+			}
+			
+			private function showConsole(event:Event):void 
+			{
+				var console:ConsoleWindow = new ConsoleWindow();
+				
+				console.messages = _messages;
+				console.open();
+			}
+			
+			private function closeApplication(event:Event):void 
+			{
+				// TODO only enable close button when finished or when an error occurs
+				// TODO anything we need to clean up?
+				close();
+			}
+			
+			protected function clickLogo(event:MouseEvent):void
+			{
+				var url:String = "http://incubator.apache.org/flex/"; 
+				var urlReq:URLRequest = new URLRequest(url); 
+				
+				navigateToURL(urlReq);
+			}		
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:List id="logTxtArea" dataProvider="{_messages}" width="100%" height="100%" contentBackgroundColor="0x000000" color="0xFFFFFF" />
+	</fx:Declarations>
+	
+	<s:layout>
+		<s:VerticalLayout gap="10" horizontalAlign="center" paddingTop="10" paddingBottom="10" />
+	</s:layout>
+	<s:states>
+		<s:State name="guiState" id="guiState" />
+		<s:State name="commandLineState" id="commandLineState" />
+	</s:states>
+	<s:Image source="@Embed('/ApacheFlexLogo_fullcolor_wb.png')" width="50%" height="50%" useHandCursor="true" buttonMode="true" click="clickLogo(event)" />
+	<s:HGroup width="80%" enabled="false" enabled.guiState="true">
+		<s:TextInput id="flexSDKTxtInput" width="100%" prompt="Enter Flex SDK path or browse to select a path" />
+		<s:Button id="browseBtn" label="Browse..." click="browseForSDK(event)" />
+		<s:Button id="installBtn" label="Install" enabled="false" click="installSDK(event)" />
+	</s:HGroup>
+	<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" />
+	<mx:ProgressBar id="progressBar" width="60%" mode="manual" minimum="0" maximum="100" />
+	<s:HGroup>
+		<s:Button label="Install Log" click="showConsole(event)" />
+		<s:Button label="Close" click="closeApplication(event)" />
+	</s:HGroup>
+</s:WindowedApplication>
