@@ -35,13 +35,14 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 <s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
-					   width="600" height="400"
+					   width="800" height="600"
 					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
 					   invoke="applicationInvoked(event)" showStatusBar="false">
 	<fx:Script>
 		<![CDATA[	
 			import mx.collections.ArrayCollection;
-
+			
+			import org.apache.flex.packageflexsdk.resource.ViewResourceConstants;
 			import org.as3commons.zip.Zip;
 			import org.as3commons.zip.ZipEvent;
 			import org.as3commons.zip.ZipFile;
@@ -105,7 +106,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function loadXML():void
 			{
-				var request:URLRequest = new URLRequest("ApacheFlexConfig.xml");
+				var request:URLRequest = new URLRequest(ViewResourceConstants.getInstance().CONFIG_URL);
 				
 				_loader = new URLLoader();
 				
@@ -115,7 +116,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 				catch (error:Error)
 				{
-					log("Error while trying to load XML config file: " + error.errorID + " " + error.message);
+					log(ViewResourceConstants.getInstance().ERROR_CONFIG_XML_LOAD + error.errorID + " " + error.message);
 				}
 				
 				_loader.addEventListener(IOErrorEvent.IO_ERROR, xmlError);
@@ -124,7 +125,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function xmlError(event:IOErrorEvent):void
 			{
-				log("IO error loading XML config file: " + event.errorID);
+				log(ViewResourceConstants.getInstance().ERROR_CONFIG_XML_LOAD + event.errorID);
 			}
 			
 			protected function xmlLoaded(event:Event):void
@@ -147,7 +148,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				APACHE_FLEX_BIN_DISTRO_URL = files.(@name == 'ApacheFlexSDK').@path.toString();
 				if (!APACHE_FLEX_BIN_DISTRO_FILE || !APACHE_FLEX_BIN_DISTRO_URL)
 				{
-					log("Apache Flex SDK URL invalid in configuration file");
+					log(ViewResourceConstants.getInstance().ERROR_INVALID_SDK_URL);
 					keepGoing = false;
 				}
 				APACHE_FLEX_BIN_DISTRO_URL += APACHE_FLEX_BIN_DISTRO_FILE;
@@ -156,7 +157,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				ADOBE_AIR_SDK_WIN_URL = files.(@name == 'AdobeAIRSDKWin').@path.toString();
 				if (_os == WINDOWS_OS && (!ADOBE_AIR_SDK_WIN_FILE || !ADOBE_AIR_SDK_WIN_URL))
 				{
-					log("Adobe AIR SDK URL for Windows invalid in configuration file");
+					log(ViewResourceConstants.getInstance().ERROR_INVALID_AIR_SDK_URL_WINDOWS);
 					keepGoing = false;
 				}
 				ADOBE_AIR_SDK_WIN_URL += ADOBE_AIR_SDK_WIN_FILE;
@@ -165,7 +166,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				ADOBE_AIR_SDK_MAC_URL = files.(@name == 'AdobeAIRSDKMac').@path.toString();
 				if (_os == MAC_OS && (!ADOBE_AIR_SDK_MAC_FILE || !ADOBE_AIR_SDK_MAC_URL))
 				{
-					log("Adobe AIR SDK URL for Mac invalid in configuration file");
+					log(ViewResourceConstants.getInstance().ERROR_INVALID_AIR_SDK_URL_MAC);
 					keepGoing = false;
 				}
 				ADOBE_AIR_SDK_MAC_URL += ADOBE_AIR_SDK_MAC_FILE;
@@ -174,7 +175,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				ADOBE_FB_GLOBALPLAYER_SWC_URL = files.(@name == 'FlashPlayer').@path.toString();
 				if (!ADOBE_FB_GLOBALPLAYER_SWC_FILE || !ADOBE_FB_GLOBALPLAYER_SWC_URL)
 				{
-					log("Flash Player global player swc URL invalid in configuration file");
+					log(ViewResourceConstants.getInstance().ERROR_INVALID_FLASH_PLAYER_SWC_URL);
 					keepGoing = false;
 				}
 				ADOBE_FB_GLOBALPLAYER_SWC_URL += ADOBE_FB_GLOBALPLAYER_SWC_FILE;
@@ -195,7 +196,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					_os = WINDOWS_OS;
 				}
 				else {
-					log("Unsupported operating system");
+					log(ViewResourceConstants.getInstance().ERROR_UNSUPPORTED_OPERATING_SYSTEM);
 				}
 			}
 			
@@ -205,7 +206,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				
 				if (isValidCommandLineInvocaton)
 				{
-					log("Invoked in command line mode with the following arguments: " + _flexHome);
+					log(ViewResourceConstants.getInstance().INFO_APP_INVOKED + _flexHome);
 					setCommandLineState();
 					flexSDKTxtInput.text = _flexHome;
 					install();
@@ -220,7 +221,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				if (flexSDKTxtInput.text == "")
 				{
-					log("Please enter valid directory path for the Flex SDK");
+					log(ViewResourceConstants.getInstance().INFO_ENTER_VALID_FLEX_SDK_PATH);
 				}
 				else
 				{
@@ -254,9 +255,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				if (_args.length == 0)
 				{
-					log(APP_NAME + " invoked in GUI mode");
-					log("Command line usage: " + APP_NAME + " [directory of Apache Flex SDK]");
-					
+					log(APP_NAME + ViewResourceConstants.getInstance().INFO_INVOKED_GUI_MODE);
 					return false;
 				}
 				
@@ -281,7 +280,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				var file:File = new File(); 
 				
 				file.addEventListener(Event.SELECT, flexSDKDirSelected); 
-				file.browseForDirectory("Select a directory"); 
+				file.browseForDirectory(ViewResourceConstants.getInstance().INFO_SELECT_DIRECTORY); 
 			}
 			
 			protected function flexSDKDirSelected(event:Event):void
@@ -293,16 +292,16 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function createDirectories():void
 			{
-				log("Creating flex home");
+				log(ViewResourceConstants.getInstance().INFO_CREATING_FLEX_HOME);
 				_flexHomeDir = createFolder(_flexHome);
-				log("Creating temp dir");
+				log(ViewResourceConstants.getInstance().INFO_CREATING_TEMP_DIR);
 				_flexTemp = _flexHome + File.separator + "temp";
 				_flexTempDir = createFolder(_flexTemp);
 			}
 			
 			protected function downloadApacheFlexSDK():void
 			{
-				log("Downloading Apache Flex SDK from: " + APACHE_FLEX_BIN_DISTRO_URL);
+				log(ViewResourceConstants.getInstance().INFO_DOWNLOADING_FLEX_SDK + APACHE_FLEX_BIN_DISTRO_URL);
 				_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
 				copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile);
 			}
@@ -320,13 +319,13 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function unzipApacheFlexSDK():void
 			{
-				log("Unzipping: " + _apacheFlexSDKZipFile.nativePath);
+				log(ViewResourceConstants.getInstance().INFO_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
 				unzip(_apacheFlexSDKZipFile, handleApacheFlexSDKZipFileUnzipComplete);
 			}
 			
 			protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void
 			{
-				log("Finished unzipping: " + _apacheFlexSDKZipFile.nativePath);
+				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
 				
 				if (_os == WINDOWS_OS)
 				{
@@ -340,14 +339,14 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function downloadAIRRuntimeKitForWindows():void
 			{
-				log("Downloading Adobe AIR Runtime Kit for Windows from: " + ADOBE_AIR_SDK_WIN_URL);
+				log(ViewResourceConstants.getInstance().INFO_DOWLOADING_AIR_RUNTIME_KIT_WINDOWS + ADOBE_AIR_SDK_WIN_URL);
 				_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_WIN_FILE);
 				copyOrDownload(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
 			}
 			
 			protected function downloadAIRRuntimeKitForMac():void
 			{
-				log("Downloading Adobe AIR Runtime Kit for Mac from: " + ADOBE_AIR_SDK_MAC_URL);
+				log(ViewResourceConstants.getInstance().INFO_DOWLOADING_AIR_RUNTIME_KIT_MAC + ADOBE_AIR_SDK_MAC_URL);
 				_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_MAC_FILE);
 				copyOrDownload(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
 			}
@@ -367,7 +366,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				if (_os == WINDOWS_OS)
 				{
-					log("Unzipping: " + _adobeAIRSDKZipFile.nativePath);
+					log(ViewResourceConstants.getInstance().INFO_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
 					unzip(_adobeAIRSDKZipFile, handleAdobeAIRSDKWinZipFileUnzipComplete);
 				}
 				else if (_os == MAC_OS)
@@ -394,7 +393,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					}
 					else
 					{
-						log("Native Process not supported.  Unable to untar Adobe AIR SDK");
+						log(ViewResourceConstants.getInstance().ERROR_NATIVE_PROCESS_NOT_SUPPORTED);
 					}
 				}
 			}
@@ -410,14 +409,14 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
 				
-				log("Native Process error unable to untar Adobe AIR SDK");
+				log(ViewResourceConstants.getInstance().ERROR_NATIVE_PROCESS_ERROR);
 				log(output);
 			}
 			
 			
 			protected function finishedUntar(event:Event):void
 			{
-				log("Finished untaring: " + _adobeAIRSDKZipFile.nativePath);
+				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNTARING + _adobeAIRSDKZipFile.nativePath);
 				
 				_process.closeInput();
 				_process.exit(true);
@@ -427,13 +426,13 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function handleAdobeAIRSDKWinZipFileUnzipComplete(event:Event):void
 			{
-				log("Finished unzipping: " + _adobeAIRSDKZipFile.nativePath);
+				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
 				downloadPlayerGlobalSWC();
 			}
 			
 			protected function downloadPlayerGlobalSWC():void
 			{
-				log("Installing Adobe Flash Player playerglobal.swc from: " + ADOBE_FB_GLOBALPLAYER_SWC_URL);
+				log(ViewResourceConstants.getInstance().INFO_INSTALLING_PLAYERGLOBAL_SWC + ADOBE_FB_GLOBALPLAYER_SWC_URL);
 				_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
 				_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
 				copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile);
@@ -456,8 +455,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				var configFilesDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "ide" + File.separator + "flashbuilder" + File.separator + "config");
 				var configFiles:Array = configFilesDir.getDirectoryListing();
 				var flexHomeFrameworksDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "frameworks");
-				
-				log("Installing frameworks config files configured for use with an IDE");
+				log(ViewResourceConstants.getInstance().INFO_INSTALLING_CONFIG_FILES);
 				
 				for each (var file:File in configFiles)
 				{
@@ -474,7 +472,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function cleanup():void
 			{
 				_flexTempDir.deleteDirectory(true);
-				log("Installation complete.");
+				log(ViewResourceConstants.getInstance().INFO_INSTALLATION_COMPLETE);
 			}
 			
 			/************************ Utility methods *****************/
@@ -502,7 +500,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					}
 					catch (error:Error)
 					{
-						log("Unable to copy file " + error.errorID + " " + error.message);
+						log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_COPY_FILE + error.errorID + " " + error.message);
 					}
 				}
 			}
@@ -529,7 +527,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				// show count in command line progress bar in gui
 				if (currentState == "commandLineState" && percentLoaded % 10 == 0 && percentLoaded != _previousDisplayedPercent)
 				{
-					log("Downloaded " + percentLoaded + "%");
+					log(ViewResourceConstants.getInstance().INFO_DOWNLOADED + percentLoaded + "%");
 					_previousDisplayedPercent = percentLoaded;
 				}
 				else {
@@ -617,7 +615,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function clickLogo(event:MouseEvent):void
 			{
-				var url:String = "http://incubator.apache.org/flex/"; 
+				var url:String = ViewResourceConstants.getInstance().APACHE_FLEX_URL; //"http://incubator.apache.org/flex/"; 
 				var urlReq:URLRequest = new URLRequest(url); 
 				
 				navigateToURL(urlReq);
@@ -636,16 +634,16 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 		<s:State name="guiState" id="guiState" />
 		<s:State name="commandLineState" id="commandLineState" />
 	</s:states>
-	<s:Image source="@Embed('/ApacheFlexLogo_fullcolor_wb.png')" width="50%" height="50%" useHandCursor="true" buttonMode="true" click="clickLogo(event)" />
+	<s:Image source="@Embed('icons/ApacheFlexLogo_fullcolor_wb.png')" useHandCursor="true" buttonMode="true" click="clickLogo(event)" />
 	<s:HGroup width="80%" enabled="false" enabled.guiState="true">
-		<s:TextInput id="flexSDKTxtInput" width="100%" prompt="Enter Flex SDK path or browse to select a path" />
-		<s:Button id="browseBtn" label="Browse..." click="browseForSDK(event)" />
-		<s:Button id="installBtn" label="Install" enabled="false" click="installSDK(event)" />
+		<s:TextInput id="flexSDKTxtInput" width="100%" prompt="{ViewResourceConstants.getInstance().SELECT_PATH_PROMPT}" />
+		<s:Button id="browseBtn" label="{ViewResourceConstants.getInstance().BROWSE_BTN_LABEL}" click="browseForSDK(event)" />
+		<s:Button id="installBtn" label="{ViewResourceConstants.getInstance().INSTALL_BTN_LABEL}" enabled="false" click="installSDK(event)" />
 	</s:HGroup>
 	<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" />
 	<mx:ProgressBar id="progressBar" width="60%" mode="manual" minimum="0" maximum="100" />
 	<s:HGroup>
-		<s:Button label="Install Log" click="showConsole(event)" />
-		<s:Button label="Close" click="closeApplication(event)" />
+		<s:Button label="{ViewResourceConstants.getInstance().INSTALL_LOG_BTN_LABEL}" click="showConsole(event)" />
+		<s:Button label="{ViewResourceConstants.getInstance().CLOSE_BTN_LABEL}" click="closeApplication(event)" />
 	</s:HGroup>
 </s:WindowedApplication>
