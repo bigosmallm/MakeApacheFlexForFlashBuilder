@@ -35,11 +35,14 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 <s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
-					   width="800" height="600"
+					   width="800" height="600" maxWidth="800" maxHeight="600" minWidth="800" minHeight="600"
 					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
-					   invoke="applicationInvoked(event)" showStatusBar="false">
+					   invoke="applicationInvoked(event)" showStatusBar="false"
+					   skinClass="ws.tink.spark.skins.controls.PackageApacheFlexForIDESkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*">
+	<fx:Style source="assets/styles/styles.css" />
 	<fx:Script>
 		<![CDATA[	
+			import org.apache.flex.packageflexsdk.view.components.ConsoleWindow;
 			import mx.collections.ArrayCollection;
 			
 			import org.apache.flex.packageflexsdk.resource.ViewResourceConstants;
@@ -531,7 +534,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					_previousDisplayedPercent = percentLoaded;
 				}
 				else {
-					progressBar.setProgress(percentLoaded, 100);
+					progressBar.percent = percentLoaded;
 				}
 			}
 			
@@ -549,7 +552,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				fs.open(fileToUnzip, FileMode.READ);
 				fs.readBytes(zipFileBytes);
 				fs.close();
-	
+				
 				fzip.addEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
 				fzip.addEventListener(Event.COMPLETE, unzipCompleteFunction);
 				fzip.addEventListener(Event.COMPLETE, onUnzipComplete);
@@ -567,7 +570,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					// Is a directory, not a file. Dont try to write anything into it.    
 					return;
 				}
-	
+				
 				fs.open(f, FileMode.WRITE);
 				fs.writeBytes(fzf.content);
 				fs.close();
@@ -622,28 +625,28 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			}		
 		]]>
 	</fx:Script>
-	
-	<fx:Declarations>
-		<s:List id="logTxtArea" dataProvider="{_messages}" width="100%" height="100%" contentBackgroundColor="0x000000" color="0xFFFFFF" />
-	</fx:Declarations>
-	
-	<s:layout>
-		<s:VerticalLayout gap="10" horizontalAlign="center" paddingTop="10" paddingBottom="10" />
-	</s:layout>
 	<s:states>
 		<s:State name="guiState" id="guiState" />
 		<s:State name="commandLineState" id="commandLineState" />
 	</s:states>
-	<s:Image source="@Embed('icons/ApacheFlexLogo_fullcolor_wb.png')" useHandCursor="true" buttonMode="true" click="clickLogo(event)" />
+	<s:layout>
+		<s:VerticalLayout gap="10" horizontalAlign="center" paddingTop="350" paddingBottom="20" />
+	</s:layout>
 	<s:HGroup width="80%" enabled="false" enabled.guiState="true">
 		<s:TextInput id="flexSDKTxtInput" width="100%" prompt="{ViewResourceConstants.getInstance().SELECT_PATH_PROMPT}" />
-		<s:Button id="browseBtn" label="{ViewResourceConstants.getInstance().BROWSE_BTN_LABEL}" click="browseForSDK(event)" />
-		<s:Button id="installBtn" label="{ViewResourceConstants.getInstance().INSTALL_BTN_LABEL}" enabled="false" click="installSDK(event)" />
+		<s:Button id="browseBtn" styleName="browseBtnStyle" width="88" height="32"
+				  label="{ViewResourceConstants.getInstance().BROWSE_BTN_LABEL}" click="browseForSDK(event)" />
+		<s:Button id="installBtn" styleName="installBtnStyle" width="88" height="32"
+				  label="{ViewResourceConstants.getInstance().INSTALL_BTN_LABEL}" enabled="false" click="installSDK(event)" />
 	</s:HGroup>
 	<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" />
-	<mx:ProgressBar id="progressBar" width="60%" mode="manual" minimum="0" maximum="100" />
-	<s:HGroup>
-		<s:Button label="{ViewResourceConstants.getInstance().INSTALL_LOG_BTN_LABEL}" click="showConsole(event)" />
-		<s:Button label="{ViewResourceConstants.getInstance().CLOSE_BTN_LABEL}" click="closeApplication(event)" />
+	<controls:ProgressBar id="progressBar" width="60%" height="21" />
+	<s:Spacer height="100%" />
+	<s:HGroup width="100%" paddingLeft="20" paddingRight="20">
+		<s:Button id="installLogBtn" styleName="genericBtnStyle" width="110" height="32"
+				  label="{ViewResourceConstants.getInstance().INSTALL_LOG_BTN_LABEL}" click="showConsole(event)" />
+		<s:Spacer width="100%" />
+		<s:Button id="closeBtn" styleName="genericBtnStyle" width="88" height="32" 
+				  label="{ViewResourceConstants.getInstance().CLOSE_BTN_LABEL}" click="closeApplication(event)" />
 	</s:HGroup>
 </s:WindowedApplication>
