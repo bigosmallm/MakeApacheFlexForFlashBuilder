@@ -80,7 +80,7 @@
             <s:SolidColor id="backgroundFill" />
         </s:fill>
     </s:Rect>-->
-	<s:Image source="@Embed('assets/icons/bg_logo.png')" width="100%" height="100%" useHandCursor="true" buttonMode="true" />
+	<s:Image source="@Embed('/assets/icons/bg_logo.png')" width="100%" height="100%" useHandCursor="true" buttonMode="true" />
 
     <!-- layer 2: content + status bar -->
     <s:Group left="0" right="0" top="0" bottom="0" minHeight="24" minWidth="0" >
