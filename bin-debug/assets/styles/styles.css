@@ -1,0 +1,81 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+@namespace st "ws.tink.spark.controls.*";
+
+@font-face {
+	src: url("assets/fonts/open-sans/OpenSans-Semibold.ttf");
+	fontFamily: openSansSemibold;
+	advancedAntiAliasing: true;
+}
+
+@font-face {
+	src: url("assets/fonts/open-sans/OpenSans-SemiboldItalic.ttf");
+	fontFamily: openSansSemibold;
+	advancedAntiAliasing: true;
+	fontStyle:italic;
+}
+
+st|StepRenderer st|ActivityIndicator
+{
+	skinClass : ClassReference("ws.tink.spark.skins.controls.StepActivityIndicatorSkin");
+}
+
+st|StepRenderer st|ActivityIndicator st|Rotator
+{
+	skinClass : ClassReference("ws.tink.spark.skins.controls.StepRotatorSkin");
+}
+
+st|StepRenderer
+{
+	color 			: #FFFFFF;
+	activeColor		: #FFFFFF;
+	errorColor		: #B20E13;
+	completeColor	: #679d13;
+	borderColor		: #BFBFBF;
+}
+
+st|ProgressBar
+{
+	skinClass : ClassReference("ws.tink.spark.skins.controls.ProgressBarSkin");
+	chromeColor	: #1275a4;
+}
+
+s|Button
+{
+	skinClass : ClassReference("ws.tink.spark.skins.controls.ButtonSkin");
+	fontFamily : openSansSemibold;
+	fontSize : 14;
+	color	: #FFFFFF;
+	borderColor: #DBDBDB;
+}
+
+.browseBtnStyle
+{
+	chromeColor: #40b8df;
+}
+
+.installBtnStyle
+{
+	chromeColor: #679d13;
+}
+
+.genericBtnStyle
+{
+	chromeColor: #7b7b7b;
+}
+
+s|TextInput
+{
+	fontFamily : openSansSemibold;
+	fontSize : 13;
+	color	: #757575;
+	skinClass : ClassReference("ws.tink.spark.skins.controls.TextInputSkin");
+	borderColor		: #BFBFBF;
+}
+
+s|TextInput:normalWithPrompt,
+s|TextInput:disabledWithPrompt
+{
+	color: #BBBBBB;
+}
