@@ -38,19 +38,22 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					   width="800" height="600" maxWidth="800" maxHeight="600" minWidth="800" minHeight="600"
 					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
 					   invoke="applicationInvoked(event)" showStatusBar="false"
-					   skinClass="ws.tink.spark.skins.controls.PackageApacheFlexForIDESkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*">
+					   skinClass="ws.tink.spark.skins.controls.PackageApacheFlexForIDESkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*">
 	<fx:Style source="assets/styles/styles.css" />
 	<fx:Script>
 		<![CDATA[	
-			import org.apache.flex.packageflexsdk.view.components.ConsoleWindow;
 			import mx.collections.ArrayCollection;
 			
+			import org.apache.flex.packageflexsdk.model.ActivityStepVO;
 			import org.apache.flex.packageflexsdk.resource.ViewResourceConstants;
+			import org.apache.flex.packageflexsdk.view.components.ConsoleWindow;
 			import org.as3commons.zip.Zip;
 			import org.as3commons.zip.ZipEvent;
 			import org.as3commons.zip.ZipFile;
 			
 			import spark.components.Window;
+			
+			import ws.tink.spark.controls.StepItem;
 			
 			/**
 			 * Apache Flex binary distribution
@@ -98,6 +101,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private var _loader:URLLoader;	
 			private var _process:NativeProcess;
 			private var _previousDisplayedPercent:int = 0;
+			[Bindable] private var _installationSteps:ArrayCollection = new ArrayCollection();
 			
 			[Bindable] private var _messages:ArrayCollection = new ArrayCollection();
 			
@@ -218,6 +222,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					setGUIState();
 				}
+				initiateInstallStepsActivity();
 			}
 			
 			protected function installSDK(event:MouseEvent):void
@@ -232,6 +237,17 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					_flexHome = flexSDKTxtInput.text;
 					install();
 				}
+			}
+			
+			protected function initiateInstallStepsActivity():void
+			{
+				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_CREATE_DIRECTORIES));
+				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK));
+				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK));
+				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT));
+				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT));
+				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC));
+				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES));
 			}
 			
 			protected function install():void
@@ -295,41 +311,83 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function createDirectories():void
 			{
-				log(ViewResourceConstants.getInstance().INFO_CREATING_FLEX_HOME);
-				_flexHomeDir = createFolder(_flexHome);
-				log(ViewResourceConstants.getInstance().INFO_CREATING_TEMP_DIR);
-				_flexTemp = _flexHome + File.separator + "temp";
-				_flexTempDir = createFolder(_flexTemp);
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_CREATE_DIRECTORIES, StepItem.ACTIVE);
+				
+				try
+				{
+					log(ViewResourceConstants.getInstance().INFO_CREATING_FLEX_HOME);
+					_flexHomeDir = createFolder(_flexHome);
+					log(ViewResourceConstants.getInstance().INFO_CREATING_TEMP_DIR);
+					_flexTemp = _flexHome + File.separator + "temp";
+					_flexTempDir = createFolder(_flexTemp);
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_CREATE_DIRECTORIES, StepItem.COMPLETE);
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_CREATE_DIRECTORIES, StepItem.ERROR);
+					abortInstallation();
+				}
 			}
 			
 			protected function downloadApacheFlexSDK():void
 			{
-				log(ViewResourceConstants.getInstance().INFO_DOWNLOADING_FLEX_SDK + APACHE_FLEX_BIN_DISTRO_URL);
-				_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
-				copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile);
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ACTIVE);
+				try
+				{
+					log(ViewResourceConstants.getInstance().INFO_DOWNLOADING_FLEX_SDK + APACHE_FLEX_BIN_DISTRO_URL);
+					_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
+					copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile, handleApacheFlexSDKDownloadError);
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
+					abortInstallation();
+				}
+					
 			}
 			
 			protected function handleApacheFlexSDKDownload(event:Event):void
 			{
-				var fs:FileStream = new FileStream(); 
-				
-				fs.open(_apacheFlexSDKZipFile, FileMode.WRITE); 
-				fs.writeBytes(event.target.data); 
-				fs.close();
-				
+				try
+				{
+					var fs:FileStream = new FileStream(); 
+					fs.open(_apacheFlexSDKZipFile, FileMode.WRITE); 
+					fs.writeBytes(event.target.data); 
+					fs.close();
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
+					abortInstallation();
+				}
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.COMPLETE);	
 				unzipApacheFlexSDK();
+			}
+			
+			protected function handleApacheFlexSDKDownloadError(event:*=null):void{
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
+				log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_DOWNLOAD_FLEX_SDK);
+				abortInstallation();
 			}
 			
 			protected function unzipApacheFlexSDK():void
 			{
-				log(ViewResourceConstants.getInstance().INFO_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
-				unzip(_apacheFlexSDKZipFile, handleApacheFlexSDKZipFileUnzipComplete);
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK, StepItem.ACTIVE);
+				try{
+					log(ViewResourceConstants.getInstance().INFO_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
+					unzip(_apacheFlexSDKZipFile, handleApacheFlexSDKZipFileUnzipComplete, handleApacheFlexSDKZipFileUnzipError);
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK, StepItem.ERROR);
+					abortInstallation();
+				}
 			}
 			
 			protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void
 			{
 				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
-				
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK, StepItem.COMPLETE);	
 				if (_os == WINDOWS_OS)
 				{
 					downloadAIRRuntimeKitForWindows();
@@ -340,142 +398,217 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 			}
 			
+			protected function handleApacheFlexSDKZipFileUnzipError(error:ErrorEvent=null):void
+			{
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK, StepItem.ERROR);
+				abortInstallation();
+			}
+			
 			protected function downloadAIRRuntimeKitForWindows():void
 			{
-				log(ViewResourceConstants.getInstance().INFO_DOWLOADING_AIR_RUNTIME_KIT_WINDOWS + ADOBE_AIR_SDK_WIN_URL);
-				_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_WIN_FILE);
-				copyOrDownload(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ACTIVE);
+				try
+				{
+					log(ViewResourceConstants.getInstance().INFO_DOWLOADING_AIR_RUNTIME_KIT_WINDOWS + ADOBE_AIR_SDK_WIN_URL);
+					_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_WIN_FILE);
+					copyOrDownload(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile, handleAIRSDKDownloadError);
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
+					abortInstallation();
+				}
 			}
 			
 			protected function downloadAIRRuntimeKitForMac():void
 			{
-				log(ViewResourceConstants.getInstance().INFO_DOWLOADING_AIR_RUNTIME_KIT_MAC + ADOBE_AIR_SDK_MAC_URL);
-				_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_MAC_FILE);
-				copyOrDownload(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile);
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ACTIVE);
+				try
+				{
+					log(ViewResourceConstants.getInstance().INFO_DOWLOADING_AIR_RUNTIME_KIT_MAC + ADOBE_AIR_SDK_MAC_URL);
+					_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_MAC_FILE);
+					copyOrDownload(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile, handleAIRSDKDownloadError);
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
+					abortInstallation();
+				}
 			}
 			
 			protected function handleAIRSDKDownload(event:Event):void
 			{
-				var fs:FileStream = new FileStream();
-				
-				fs.open(_adobeAIRSDKZipFile, FileMode.WRITE);
-				fs.writeBytes(event.target.data); 
-				fs.close();
+				try
+				{
+					var fs:FileStream = new FileStream();
+					fs.open(_adobeAIRSDKZipFile, FileMode.WRITE);
+					fs.writeBytes(event.target.data); 
+					fs.close();
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
+					abortInstallation();
+				}
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.COMPLETE);
 				
 				unzipAdobeAIRSDK();
 			}
 			
+			protected function handleAIRSDKDownloadError(error:*=null):void
+			{
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
+				log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_DOWNLOAD_AIR_SDK);
+				abortInstallation();
+			}
+			
 			protected function unzipAdobeAIRSDK():void
 			{
-				if (_os == WINDOWS_OS)
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ACTIVE);
+				
+				try
 				{
-					log(ViewResourceConstants.getInstance().INFO_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
-					unzip(_adobeAIRSDKZipFile, handleAdobeAIRSDKWinZipFileUnzipComplete);
+					if (_os == WINDOWS_OS)
+					{
+						log(ViewResourceConstants.getInstance().INFO_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
+						unzip(_adobeAIRSDKZipFile, handleAdobeAIRSDKWinZipFileUnzipComplete, handleAdobeAIRSDKWinZipFileUnzipError);
+						
+					}
+					else if (_os == MAC_OS)
+					{
+						if (NativeProcess.isSupported)
+						{
+							untar(_adobeAIRSDKZipFile, _flexHomeDir, handleAdobeAIRSDKMacUntarComplete, handleAdobeAIRSDKMacUntarError);
+						}
+						else
+						{
+							log(ViewResourceConstants.getInstance().ERROR_NATIVE_PROCESS_NOT_SUPPORTED);
+							updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
+						}
+					}
 				}
-				else if (_os == MAC_OS)
+				catch(e:Error)
 				{
-					if (NativeProcess.isSupported)
-					{
-						var tar:File = new File("/usr/bin/tar");
-						var startupInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
-						var arguments:Vector.<String> = new Vector.<String>();
-						
-						arguments.push("xf");
-						arguments.push(_adobeAIRSDKZipFile.nativePath);
-						arguments.push("-C");
-						arguments.push(_flexHome);
-						
-						startupInfo.executable = tar;
-						startupInfo.arguments = arguments;
-						
-						_process = new NativeProcess();
-						_process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, unTarFile);
-						_process.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, unTarError);
-						_process.addEventListener(NativeProcessExitEvent.EXIT, finishedUntar);
-						_process.start(startupInfo);
-					}
-					else
-					{
-						log(ViewResourceConstants.getInstance().ERROR_NATIVE_PROCESS_NOT_SUPPORTED);
-					}
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
+					abortInstallation();
 				}
 			}
 			
-			protected function unTarFile(event:Event):void
-			{
-				var output:String = _process.standardOutput.readUTFBytes(_process.standardOutput.bytesAvailable);
-				
-				log(output);
+			protected function handleAdobeAIRSDKMacUntarError(error:ProgressEvent=null):void{
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
+				abortInstallation();
 			}
 			
-			protected function unTarError(event:Event):void
+			protected function handleAdobeAIRSDKMacUntarComplete(event:Event):void
 			{
-				var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
-				
-				log(ViewResourceConstants.getInstance().ERROR_NATIVE_PROCESS_ERROR);
-				log(output);
-			}
-			
-			
-			protected function finishedUntar(event:Event):void
-			{
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.COMPLETE);
 				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNTARING + _adobeAIRSDKZipFile.nativePath);
-				
-				_process.closeInput();
-				_process.exit(true);
-				
 				downloadPlayerGlobalSWC();
 			}
 			
 			protected function handleAdobeAIRSDKWinZipFileUnzipComplete(event:Event):void
 			{
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.COMPLETE);
 				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
 				downloadPlayerGlobalSWC();
 			}
 			
+			protected function handleAdobeAIRSDKWinZipFileUnzipError(error:ErrorEvent=null):void{
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
+			}
+			
 			protected function downloadPlayerGlobalSWC():void
 			{
-				log(ViewResourceConstants.getInstance().INFO_INSTALLING_PLAYERGLOBAL_SWC + ADOBE_FB_GLOBALPLAYER_SWC_URL);
-				_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
-				_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
-				copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile);
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ACTIVE);
+				try
+				{
+					log(ViewResourceConstants.getInstance().INFO_INSTALLING_PLAYERGLOBAL_SWC + ADOBE_FB_GLOBALPLAYER_SWC_URL);
+					_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
+					_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
+					copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile, handlePlayerGlobalDownloadError);
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
+					abortInstallation();
+				}
 			}
 			
 			protected function handlePlayerGlobalDownload(event:Event):void
 			{
-				var playerGlobalFile:File = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
-				var fs:FileStream = new FileStream();
-				
-				fs.open(playerGlobalFile, FileMode.WRITE);
-				fs.writeBytes(event.target.data); 
-				fs.close();
-				
+				try
+				{
+					var playerGlobalFile:File = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
+					var fs:FileStream = new FileStream();
+					fs.open(playerGlobalFile, FileMode.WRITE);
+					fs.writeBytes(event.target.data); 
+					fs.close();
+				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
+					abortInstallation();
+				}
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.COMPLETE);
 				copyConfigFiles();
+			}
+			
+			protected function handlePlayerGlobalDownloadError(event:ErrorEvent=null):void
+			{
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
+				log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC);
+				abortInstallation();
 			}
 			
 			protected function copyConfigFiles():void
 			{
-				var configFilesDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "ide" + File.separator + "flashbuilder" + File.separator + "config");
-				var configFiles:Array = configFilesDir.getDirectoryListing();
-				var flexHomeFrameworksDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "frameworks");
-				log(ViewResourceConstants.getInstance().INFO_INSTALLING_CONFIG_FILES);
-				
-				for each (var file:File in configFiles)
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES, StepItem.ACTIVE);
+				try
 				{
-					if (isValidConfigFile(file))
+					var configFilesDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "ide" + File.separator + "flashbuilder" + File.separator + "config");
+					var configFiles:Array = configFilesDir.getDirectoryListing();
+					var flexHomeFrameworksDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "frameworks");
+					log(ViewResourceConstants.getInstance().INFO_INSTALLING_CONFIG_FILES);
+					
+					for each (var file:File in configFiles)
 					{
-						var copyToFile:File = flexHomeFrameworksDir.resolvePath(file.name);
-						file.copyTo(copyToFile,true);
+						if (isValidConfigFile(file))
+						{
+							var copyToFile:File = flexHomeFrameworksDir.resolvePath(file.name);
+							file.copyTo(copyToFile,true);
+						}
 					}
 				}
+				catch(e:Error)
+				{
+					updateActivityStep(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES, StepItem.ERROR);
+					abortInstallation();
+				}
+				
+				updateActivityStep(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES, StepItem.COMPLETE);
 				
 				cleanup();
 			}
 			
-			protected function cleanup():void
+			protected function cleanup(isAbort:Boolean=false):void
 			{
-				_flexTempDir.deleteDirectory(true);
-				log(ViewResourceConstants.getInstance().INFO_INSTALLATION_COMPLETE);
+				try
+				{
+					_flexTempDir.deleteDirectory(true);
+				}
+				catch(e:Error)
+				{
+					log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY);	
+				}
+				if(!isAbort)
+				{
+					log(ViewResourceConstants.getInstance().INFO_INSTALLATION_COMPLETE);
+				}
+			}
+			
+			protected function abortInstallation():void{
+				cleanup(true);
+				log(ViewResourceConstants.getInstance().INFO_ABORT_INSTALLATION);
 			}
 			
 			/************************ Utility methods *****************/
@@ -487,11 +620,11 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				return dir;
 			}
 			
-			private function copyOrDownload(url:String, handlerFunction:Function, dest:File):void
+			private function copyOrDownload(url:String, handlerFunction:Function, dest:File, errorFunction:Function=null):void
 			{
 				if (url.search("http") == 0)
 				{
-					download(url, handlerFunction);
+					download(url, handlerFunction,errorFunction);
 				}
 				else
 				{
@@ -503,12 +636,15 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					}
 					catch (error:Error)
 					{
+						if(errorFunction != null){
+							errorFunction.call(null);
+						}
 						log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_COPY_FILE + error.errorID + " " + error.message);
 					}
 				}
 			}
 			
-			private function download(url:String, handlerFunction:Function):void
+			private function download(url:String, handlerFunction:Function, errorFunction:Function=null):void
 			{
 				var loader:URLLoader = new URLLoader();
 				var req:URLRequest = new URLRequest(url);
@@ -516,6 +652,11 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				loader.dataFormat = URLLoaderDataFormat.BINARY; 
 				loader.addEventListener(Event.COMPLETE, handlerFunction);
 				loader.addEventListener(Event.COMPLETE, handleDownloadComplete);
+				if(errorFunction != null)
+				{
+					loader.addEventListener(ErrorEvent.ERROR,errorFunction);
+					loader.addEventListener(IOErrorEvent.IO_ERROR,errorFunction);
+				}
 				loader.addEventListener(ProgressEvent.PROGRESS, handleDownloadProgress);
 				
 				loader.load(req);
@@ -543,7 +684,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				_previousDisplayedPercent = 0;
 			}
 			
-			private function unzip(fileToUnzip:File, unzipCompleteFunction:Function):void
+			private function unzip(fileToUnzip:File, unzipCompleteFunction:Function, unzipErrorFunction:Function=null):void
 			{
 				var zipFileBytes:ByteArray = new ByteArray();
 				var fs:FileStream = new FileStream();
@@ -556,6 +697,10 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				fzip.addEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
 				fzip.addEventListener(Event.COMPLETE, unzipCompleteFunction);
 				fzip.addEventListener(Event.COMPLETE, onUnzipComplete);
+				if(unzipErrorFunction != null)
+				{
+					fzip.addEventListener(ErrorEvent.ERROR,unzipErrorFunction);		
+				}
 				fzip.loadBytes(zipFileBytes);
 			}
 			
@@ -584,10 +729,52 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				fzip.removeEventListener(Event.COMPLETE, onUnzipComplete);
 			}
 			
+			private function untar(source:File,destination:File,unTarCompleteFunction:Function,unTarErrorFunction:Function):void
+			{
+				var tar:File = new File("/usr/bin/tar");
+				var startupInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
+				var arguments:Vector.<String> = new Vector.<String>();
+				
+				arguments.push("xf");
+				arguments.push(source.nativePath);
+				arguments.push("-C");
+				arguments.push(destination.nativePath);
+				
+				startupInfo.executable = tar;
+				startupInfo.arguments = arguments;
+				
+				_process = new NativeProcess();
+				_process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, unTarFileProgress);
+				_process.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, unTarErrorFunction);
+				_process.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, unTarError);
+				_process.addEventListener(NativeProcessExitEvent.EXIT, unTarCompleteFunction);
+				_process.addEventListener(NativeProcessExitEvent.EXIT, unTarComplete);
+				_process.start(startupInfo);
+			}
+			
+			protected function unTarError(event:Event):void
+			{
+				var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
+				log(ViewResourceConstants.getInstance().ERROR_NATIVE_PROCESS_ERROR);
+				log(output);
+			}
+			
+			protected function unTarFileProgress(event:Event):void
+			{
+				var output:String = _process.standardOutput.readUTFBytes(_process.standardOutput.bytesAvailable);
+				log(output);
+			}
+			
+			protected function unTarComplete(event:NativeProcessExitEvent):void
+			{
+				_process.closeInput();
+				_process.exit(true);
+			}
+
+			
 			private function isValidConfigFile(file:File):Boolean
 			{
 				var name:String = file.name;
-				
 				if (name.search("-config.xml") == -1) {
 					return false;
 				}
@@ -604,7 +791,6 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private function showConsole(event:Event):void 
 			{
 				var console:ConsoleWindow = new ConsoleWindow();
-				
 				console.messages = _messages;
 				console.open();
 			}
@@ -620,9 +806,26 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				var url:String = ViewResourceConstants.getInstance().APACHE_FLEX_URL; //"http://incubator.apache.org/flex/"; 
 				var urlReq:URLRequest = new URLRequest(url); 
-				
 				navigateToURL(urlReq);
-			}		
+			}
+			
+			protected function getStepItemFromStepLabel(stepLabel:String):StepItem{
+				for each(var s:StepItem in _installationSteps){
+					if(s.label == stepLabel){
+						return s;
+					}
+				}
+				return null;
+			}
+			
+			protected function updateActivityStep(stepLabel:String,status:String):void
+			{
+				var step:StepItem = StepItem(getStepItemFromStepLabel(stepLabel));
+				if(step != null)
+				{
+					step.status = status;
+				}
+			}
 		]]>
 	</fx:Script>
 	<s:states>
@@ -639,7 +842,8 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 		<s:Button id="installBtn" styleName="installBtnStyle" width="88" height="32"
 				  label="{ViewResourceConstants.getInstance().INSTALL_BTN_LABEL}" enabled="false" click="installSDK(event)" />
 	</s:HGroup>
-	<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" />
+	<controls1:MultiStepProgressIndicator steps="{_installationSteps}" />
+	<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" horizontalCenter="0" />
 	<controls:ProgressBar id="progressBar" width="60%" height="21" />
 	<s:Spacer height="100%" />
 	<s:HGroup width="100%" paddingLeft="20" paddingRight="20">
