@@ -58,14 +58,10 @@ package ws.tink.spark.controls
 				setCurrentState( "normal" );
 			}
 			
-			toolTip = (data && data is StepItem )? StepItem( data ).label + " " + StepItem( data ).status: "";
+			toolTip = (data && data is StepItem )? StepItem( data ).label : "";
 			
 			super.commitProperties();
 		}
-		
-		
-		
-		
 		
 		public function get label():String
 		{

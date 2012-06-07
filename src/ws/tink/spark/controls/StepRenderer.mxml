@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<local:StepRendererBase xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<st:StepRendererBase xmlns:fx="http://ns.adobe.com/mxml/2009" 
 						xmlns:s="library://ns.adobe.com/flex/spark" 
 						xmlns:mx="library://ns.adobe.com/flex/mx"
-						xmlns:st="library://ns.tink.ws/flex/spark"
-						xmlns:local="*"
-						width="22" height="22"  >
+						xmlns:st="ws.tink.spark.controls.*"
+						width="22" height="22"   >
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-	<local:states>
+	<st:states>
 		<s:State name="normal"/>
 		<s:State name="active"/>
 		<s:State name="complete"/>
 		<s:State name="error"/>
-	</local:states>
+	</st:states>
 	
 	<!-- layer 1: border -->
 	<!--- @private -->
@@ -61,4 +60,4 @@
 	<st:ActivityIndicator width="12" height="12" horizontalCenter="0" verticalCenter="0"
 						  autoAnimate="true" includeIn="active"/>
 	
-</local:StepRendererBase>
+</st:StepRendererBase>

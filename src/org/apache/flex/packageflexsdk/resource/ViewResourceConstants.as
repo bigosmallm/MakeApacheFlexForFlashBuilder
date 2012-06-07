@@ -41,11 +41,24 @@ package org.apache.flex.packageflexsdk.resource
 		private var _INFO_INSTALLATION_COMPLETE:String;
 		private var _ERROR_UNABLE_TO_COPY_FILE:String;
 		private var _INFO_DOWNLOADED:String;
+		private var _ERROR_UNABLE_TO_DOWNLOAD_FLEX_SDK:String;
+		private var _ERROR_UNABLE_TO_DOWNLOAD_AIR_SDK:String;
+		private var _ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC:String;
+		private var _INFO_ABORT_INSTALLATION:String;
+		private var _ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY:String;
 		
 		//URLs
 		private var _APACHE_FLEX_URL:String;
 		private var _CONFIG_URL:String;
 		
+		//STEPS
+		private var _STEP_CREATE_DIRECTORIES:String;
+		private var _STEP_DOWNLOAD_FLEX_SDK:String;
+		private var _STEP_UNZIP_FLEX_SDK:String;
+		private var _STEP_DOWNLOAD_AIR_RUNTIME_KIT:String;
+		private var _STEP_UNZIP_AIR_RUNTIME_KIT:String;
+		private var _STEP_DOWNLOAD_FLASHPLAYER_SWC:String;
+		private var _STEP_INSTALL_CONFIG_FILES:String;
 		
 		public function ViewResourceConstants(enforcer:SingletonEnforcer)
 		{
@@ -100,6 +113,19 @@ package org.apache.flex.packageflexsdk.resource
 			_INFO_INSTALLATION_COMPLETE = ResourceManager.getInstance().getString("messagestrings","info_installation_complete");
 			_ERROR_UNABLE_TO_COPY_FILE = ResourceManager.getInstance().getString("messagestrings","error_unable_to_copy_file");
 			_INFO_DOWNLOADED = ResourceManager.getInstance().getString("messagestrings","info_downloaded");
+			_ERROR_UNABLE_TO_DOWNLOAD_FLEX_SDK = ResourceManager.getInstance().getString("messagestrings","error_unable_to_download_flex_sdk");
+			_ERROR_UNABLE_TO_DOWNLOAD_AIR_SDK = ResourceManager.getInstance().getString("messagestrings","error_unable_to_download_air_sdk");
+			_ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC = ResourceManager.getInstance().getString("messagestrings","error_unable_to_download_flash_player_swc");
+			_INFO_ABORT_INSTALLATION = ResourceManager.getInstance().getString("messagestrings","info_abort_installation");
+			_ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY = ResourceManager.getInstance().getString("messagestrings","error_unable_to_delete_temp_directory");
+			
+			_STEP_CREATE_DIRECTORIES = ResourceManager.getInstance().getString("messagestrings","step_create_directories");
+			_STEP_DOWNLOAD_FLEX_SDK = ResourceManager.getInstance().getString("messagestrings","step_download_flex_sdk");
+			_STEP_UNZIP_FLEX_SDK = ResourceManager.getInstance().getString("messagestrings","step_unzip_flex_sdk");
+			_STEP_DOWNLOAD_AIR_RUNTIME_KIT = ResourceManager.getInstance().getString("messagestrings","step_download_air_runtime_kit");
+			_STEP_UNZIP_AIR_RUNTIME_KIT = ResourceManager.getInstance().getString("messagestrings","step_unzip_air_runtime_kit");
+			_STEP_DOWNLOAD_FLASHPLAYER_SWC = ResourceManager.getInstance().getString("messagestrings","step_download_flashplayer_swc");
+			_STEP_INSTALL_CONFIG_FILES = ResourceManager.getInstance().getString("messagestrings","step_install_config_files");
 		}
 		public function get INFO_DOWNLOADED():String
 		{
@@ -260,6 +286,67 @@ package org.apache.flex.packageflexsdk.resource
 		{
 			return _INSTALL_BTN_LABEL;
 		}
+
+		public function get STEP_CREATE_DIRECTORIES():String
+		{
+			return _STEP_CREATE_DIRECTORIES;
+		}
+
+		public function get STEP_DOWNLOAD_FLEX_SDK():String
+		{
+			return _STEP_DOWNLOAD_FLEX_SDK;
+		}
+
+		public function get STEP_UNZIP_FLEX_SDK():String
+		{
+			return _STEP_UNZIP_FLEX_SDK;
+		}
+
+		public function get STEP_DOWNLOAD_AIR_RUNTIME_KIT():String
+		{
+			return _STEP_DOWNLOAD_AIR_RUNTIME_KIT;
+		}
+
+		public function get STEP_UNZIP_AIR_RUNTIME_KIT():String
+		{
+			return _STEP_UNZIP_AIR_RUNTIME_KIT;
+		}
+
+		public function get STEP_DOWNLOAD_FLASHPLAYER_SWC():String
+		{
+			return _STEP_DOWNLOAD_FLASHPLAYER_SWC;
+		}
+
+		public function get STEP_INSTALL_CONFIG_FILES():String
+		{
+			return _STEP_INSTALL_CONFIG_FILES;
+		}
+
+		public function get ERROR_UNABLE_TO_DOWNLOAD_FLEX_SDK():String
+		{
+			return _ERROR_UNABLE_TO_DOWNLOAD_FLEX_SDK;
+		}
+
+		public function get ERROR_UNABLE_TO_DOWNLOAD_AIR_SDK():String
+		{
+			return _ERROR_UNABLE_TO_DOWNLOAD_AIR_SDK;
+		}
+
+		public function get ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC():String
+		{
+			return _ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC;
+		}
+
+		public function get INFO_ABORT_INSTALLATION():String
+		{
+			return _INFO_ABORT_INSTALLATION;
+		}
+
+		public function get ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY():String
+		{
+			return _ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY;
+		}
+
 		
 	}
 }

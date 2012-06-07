@@ -11,8 +11,9 @@ package ws.tink.spark.controls
 		public static const COMPLETE:String = "complete";
 		public static const ERROR:String = "error";
 		
-		public function StepItem()
+		public function StepItem(l:String)
 		{
+			label = l;
 		}
 		
 		private var _label:String = "";
