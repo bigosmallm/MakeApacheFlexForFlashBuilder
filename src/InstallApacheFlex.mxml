@@ -635,17 +635,9 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 							file.copyTo(copyToFile,true);
 						}
 					}
-/**
- * 
- * Disabling Flashbuilder config for now.  Build is not ready for this change
-					var fbconfigFile:File = File.userDirectory.resolvePath(_flexHome + File.separator + "ide" + File.separator + "flashbuilder" + File.separator + "flashbuilder-config.xml");
-					fbconfigFile.copyTo(_flexHomeDir,true); 
-* 
-**/
 				}
 				catch(e:Error)
 				{
-					//******* add log message here ********
 					updateActivityStep(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES, StepItem.ERROR);
 					log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_INSTALL_CONFIG_FILES);
 					abortInstallation();
