@@ -20,16 +20,31 @@ limitations under the License.
 <s:Window xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		  xmlns:s="library://ns.adobe.com/flex/spark" 
 		  xmlns:mx="library://ns.adobe.com/flex/mx"
-		  title="Install Log" width="600" height="400" backgroundColor="0x000000" showStatusBar="false">
+		  title="Install Log" width="600" height="300" showStatusBar="false"
+		  skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" >
 	<fx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
+			
+			import org.apache.flex.packageflexsdk.resource.ViewResourceConstants;
 		
 			[Bindable] public var messages:ArrayCollection = new ArrayCollection();
 			
 			protected function closeWindow(event:MouseEvent):void
 			{
 				close();
+			}
+
+			private function handleCopyBtnClick(event:MouseEvent):void
+			{
+				var logText:String="";
+				for each (var str:Object in messages)
+				{
+					logText += str.toString() + "\n";
+				}
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT,logText);
 			}
 			
 		]]>
@@ -39,14 +54,15 @@ limitations under the License.
 		<s:VerticalLayout gap="0" />
 	</s:layout>
 	
-	<s:List id="logTxtArea" dataProvider="{messages}" width="100%" height="100%" contentBackgroundColor="0x000000" color="0xFFFFFF">
+		<s:List id="logTxtArea" dataProvider="{messages}" width="100%" height="100%" >
 		<s:layout>
 			<s:VerticalLayout gap="0" horizontalAlign="justify" />
 		</s:layout>
 	</s:List>
-	
-	<s:HGroup width="100%" paddingRight="10">
-		<s:Rect width="100%" />
-		<s:Button label="Close" click="closeWindow(event)" />
+		
+	<s:HGroup width="100%" >
+		<s:Button label="COPY LOG" click="handleCopyBtnClick(event)" styleName="genericBtnStyle"  />
+		<s:Spacer width="100%" />
+		<s:Button label="{ViewResourceConstants.getInstance().CLOSE_BTN_LABEL}" click="closeWindow(event)" styleName="genericBtnStyle"  />
 	</s:HGroup>
 </s:Window>

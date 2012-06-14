@@ -1,10 +1,11 @@
 package org.apache.flex.packageflexsdk.resource
 {
+	import flash.events.Event;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.resources.IResourceManager;
 	import mx.resources.ResourceManager;
 	
-	[ResourceBundle("messagestrings")]
 	public final class ViewResourceConstants
 	{
 		private static var _instance:ViewResourceConstants;
@@ -46,6 +47,9 @@ package org.apache.flex.packageflexsdk.resource
 		private var _ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC:String;
 		private var _INFO_ABORT_INSTALLATION:String;
 		private var _ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY:String;
+		private var _ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY:String;
+		private var _ERROR_INVALID_FLEX_SDK_DIRECTORY:String;
+		private var _ERROR_UNABLE_TO_INSTALL_CONFIG_FILES:String;
 		
 		//URLs
 		private var _APACHE_FLEX_URL:String;
@@ -60,12 +64,16 @@ package org.apache.flex.packageflexsdk.resource
 		private var _STEP_DOWNLOAD_FLASHPLAYER_SWC:String;
 		private var _STEP_INSTALL_CONFIG_FILES:String;
 		
+		private var _iResourceManager:IResourceManager ;
 		public function ViewResourceConstants(enforcer:SingletonEnforcer)
 		{
 			if ( enforcer != null && !(enforcer is SingletonEnforcer) )
 			{
 				throw new Error( "Invalid Singleton access. Please use ViewResourceManager.getInstance() instead." );
 			}
+			
+			_iResourceManager = ResourceManager.getInstance();
+			_iResourceManager.addEventListener(Event.CHANGE , resourceLocale_Handler);
 			populateStrings();
 		}
 		
@@ -73,8 +81,14 @@ package org.apache.flex.packageflexsdk.resource
 		{
 			if(_instance == null){
 				_instance = new ViewResourceConstants(new SingletonEnforcer());
+				
 			}
 			return _instance;
+		}
+		
+		protected function resourceLocale_Handler(event:Event):void
+		{
+			populateStrings();
 		}
 		
 		private function populateStrings():void
@@ -118,6 +132,9 @@ package org.apache.flex.packageflexsdk.resource
 			_ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC = ResourceManager.getInstance().getString("messagestrings","error_unable_to_download_flash_player_swc");
 			_INFO_ABORT_INSTALLATION = ResourceManager.getInstance().getString("messagestrings","info_abort_installation");
 			_ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY = ResourceManager.getInstance().getString("messagestrings","error_unable_to_delete_temp_directory");
+			_ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY = ResourceManager.getInstance().getString("messagestrings","error_unable_to_create_temp_directory");
+			_ERROR_INVALID_FLEX_SDK_DIRECTORY = ResourceManager.getInstance().getString("messagestrings","error_invalid_flex_sdk_directory");
+			_ERROR_UNABLE_TO_INSTALL_CONFIG_FILES = ResourceManager.getInstance().getString("messagestrings","error_unable_to_install_config_files");
 			
 			_STEP_CREATE_DIRECTORIES = ResourceManager.getInstance().getString("messagestrings","step_create_directories");
 			_STEP_DOWNLOAD_FLEX_SDK = ResourceManager.getInstance().getString("messagestrings","step_download_flex_sdk");
@@ -345,6 +362,21 @@ package org.apache.flex.packageflexsdk.resource
 		public function get ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY():String
 		{
 			return _ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY;
+		}
+
+		public function get ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY():String
+		{
+			return _ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY;
+		}
+
+		public function get ERROR_INVALID_FLEX_SDK_DIRECTORY():String
+		{
+			return _ERROR_INVALID_FLEX_SDK_DIRECTORY;
+		}
+
+		public function get ERROR_UNABLE_TO_INSTALL_CONFIG_FILES():String
+		{
+			return _ERROR_UNABLE_TO_INSTALL_CONFIG_FILES;
 		}
 
 		

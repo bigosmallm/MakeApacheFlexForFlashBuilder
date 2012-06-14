@@ -33,14 +33,14 @@
 
 	<!-- A universally unique application identifier. Must be unique across all AIR applications.
 	Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-	<id>org.apache.flex.packageflexsdkforide</id>
+	<id>org.apache.flex.installapacheflex</id>
 
 	<!-- Used as the filename for the application. Required. -->
-	<filename>PackageApacheFlexForIDE</filename>
+	<filename>InstallApacheFlex</filename>
 
 	<!-- The name that is displayed in the AIR application installer. 
 	May have multiple values for each language. See samples or xsd schema file. Optional. -->
-	<name>PackageApacheFlexForIDE</name>
+	<name>InstallApacheFlex</name>
 	
 	<!-- A string value of the format <0-999>.<0-999>.<0-999> that represents application version which can be used to check for application upgrade. 
 	Values can also be 1-part or 2-part. It is not necessary to have a 3-part value.
@@ -64,7 +64,7 @@
 	<initialWindow>
 		<!-- The main SWF or HTML file of the application. Required. -->
 		<!-- Note: In Flash Builder, the SWF reference is set automatically. -->
-		<content>PackageApacheFlexForIDE.swf</content>
+		<content>InstallApacheFlex.swf</content>
 		
 		<!-- The title of the main window. Optional. -->
 		<!-- <title></title> -->

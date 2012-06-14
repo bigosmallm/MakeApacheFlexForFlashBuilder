@@ -17,11 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 -->
-<actionScriptProperties analytics="false" mainApplicationPath="PackageApacheFlexForIDE.mxml" projectUUID="151f0ac8-8811-45cd-b935-d7c2b0949fa3" version="10">
-  <compiler additionalCompilerArguments="-locale en_US" autoRSLOrdering="true" copyDependentFiles="true" flexSDK="Flex 4.6.0" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="true" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
-    <compilerSourcePath>
-      <compilerSourcePathEntry kind="1" linkType="1" path="locale/{locale}"/>
-    </compilerSourcePath>
+<actionScriptProperties analytics="false" mainApplicationPath="InstallApacheFlex.mxml" projectUUID="151f0ac8-8811-45cd-b935-d7c2b0949fa3" version="10">
+  <compiler additionalCompilerArguments="" autoRSLOrdering="true" copyDependentFiles="true" flexSDK="Flex 4.6.0" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="true" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+    <compilerSourcePath/>
     <libraryPath defaultLinkType="0">
       <libraryPathEntry kind="4" path="">
         <excludedEntries>
@@ -34,7 +32,7 @@ limitations under the License.
     <sourceAttachmentPath/>
   </compiler>
   <applications>
-    <application path="PackageApacheFlexForIDE.mxml">
+    <application path="InstallApacheFlex.mxml">
       <airExcludes/>
     </application>
   </applications>
