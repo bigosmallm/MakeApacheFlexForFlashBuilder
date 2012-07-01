@@ -39,7 +39,9 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
 					   invoke="applicationInvoked(event)" showStatusBar="false"
 					   skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*">
+	
 	<fx:Style source="assets/styles/styles.css" />
+	
 	<fx:Script>
 		<![CDATA[	
 			import mx.binding.utils.BindingUtils;
@@ -106,10 +108,12 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private var _loader:URLLoader;	
 			private var _process:NativeProcess;
 			private var _previousDisplayedPercent:int = 0;
-			[Bindable] private var _installationSteps:ArrayCollection = new ArrayCollection();
+			private var _runtimeLocale:RuntimeLocale = new RuntimeLocale();
+			private var _fileUnzipErrorFunction:Function;
 			
+			[Bindable] private var _constants:ViewResourceConstants;
+			[Bindable] private var _installationSteps:ArrayCollection = new ArrayCollection();
 			[Bindable] public var _messages:ArrayCollection = new ArrayCollection();
-			private var _runtimeLocale:RuntimeLocale = new RuntimeLocale;
 			
 			protected function applicationInvoked(event:InvokeEvent):void
 			{
@@ -119,6 +123,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				_langSelect.dataProvider = _runtimeLocale.supportedLanguage;
 				_langSelect.selectedIndex =0;
 				_runtimeLocale.enumerateBundles();
+				_constants = ViewResourceConstants.getInstance();
 			}
 			
 			protected function centerWindow():void
@@ -129,7 +134,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function loadXML():void
 			{
-				var request:URLRequest = new URLRequest(ViewResourceConstants.getInstance().CONFIG_URL);
+				var request:URLRequest = new URLRequest(_constants.CONFIG_URL);
 				
 				_loader = new URLLoader();
 				
@@ -139,7 +144,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 				catch (error:Error)
 				{
-					log(ViewResourceConstants.getInstance().ERROR_CONFIG_XML_LOAD + error.errorID + " " + error.message);
+					log(_constants.ERROR_CONFIG_XML_LOAD + error.errorID + " " + error.message);
 				}
 				
 				_loader.addEventListener(IOErrorEvent.IO_ERROR, xmlError);
@@ -148,12 +153,13 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function xmlError(event:IOErrorEvent):void
 			{
-				log(ViewResourceConstants.getInstance().ERROR_CONFIG_XML_LOAD + event.errorID);
+				log(_constants.ERROR_CONFIG_XML_LOAD + event.errorID);
 			}
 			
 			protected function xmlLoaded(event:Event):void
 			{
 				setOSSpecificVariables();
+				
 				if (setXMLVariables())
 				{
 					main();
@@ -171,7 +177,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				APACHE_FLEX_BIN_DISTRO_URL = files.(@name == 'ApacheFlexSDK').@path.toString();
 				if (!APACHE_FLEX_BIN_DISTRO_FILE || !APACHE_FLEX_BIN_DISTRO_URL)
 				{
-					log(ViewResourceConstants.getInstance().ERROR_INVALID_SDK_URL);
+					log(_constants.ERROR_INVALID_SDK_URL);
 					keepGoing = false;
 				}
 				APACHE_FLEX_BIN_DISTRO_URL += APACHE_FLEX_BIN_DISTRO_FILE;
@@ -180,7 +186,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				ADOBE_AIR_SDK_WIN_URL = files.(@name == 'AdobeAIRSDKWin').@path.toString();
 				if (_os == WINDOWS_OS && (!ADOBE_AIR_SDK_WIN_FILE || !ADOBE_AIR_SDK_WIN_URL))
 				{
-					log(ViewResourceConstants.getInstance().ERROR_INVALID_AIR_SDK_URL_WINDOWS);
+					log(_constants.ERROR_INVALID_AIR_SDK_URL_WINDOWS);
 					keepGoing = false;
 				}
 				ADOBE_AIR_SDK_WIN_URL += ADOBE_AIR_SDK_WIN_FILE;
@@ -189,7 +195,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				ADOBE_AIR_SDK_MAC_URL = files.(@name == 'AdobeAIRSDKMac').@path.toString();
 				if (_os == MAC_OS && (!ADOBE_AIR_SDK_MAC_FILE || !ADOBE_AIR_SDK_MAC_URL))
 				{
-					log(ViewResourceConstants.getInstance().ERROR_INVALID_AIR_SDK_URL_MAC);
+					log(_constants.ERROR_INVALID_AIR_SDK_URL_MAC);
 					keepGoing = false;
 				}
 				ADOBE_AIR_SDK_MAC_URL += ADOBE_AIR_SDK_MAC_FILE;
@@ -198,7 +204,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				ADOBE_FB_GLOBALPLAYER_SWC_URL = files.(@name == 'FlashPlayer').@path.toString();
 				if (!ADOBE_FB_GLOBALPLAYER_SWC_FILE || !ADOBE_FB_GLOBALPLAYER_SWC_URL)
 				{
-					log(ViewResourceConstants.getInstance().ERROR_INVALID_FLASH_PLAYER_SWC_URL);
+					log(_constants.ERROR_INVALID_FLASH_PLAYER_SWC_URL);
 					keepGoing = false;
 				}
 				ADOBE_FB_GLOBALPLAYER_SWC_URL += ADOBE_FB_GLOBALPLAYER_SWC_FILE;
@@ -218,8 +224,9 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					_os = WINDOWS_OS;
 				}
-				else {
-					log(ViewResourceConstants.getInstance().ERROR_UNSUPPORTED_OPERATING_SYSTEM);
+				else
+				{
+					log(_constants.ERROR_UNSUPPORTED_OPERATING_SYSTEM);
 				}
 			}
 			
@@ -229,7 +236,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				
 				if (isValidCommandLineInvocaton)
 				{
-					log(ViewResourceConstants.getInstance().INFO_APP_INVOKED + _flexHome);
+					log(_constants.INFO_APP_INVOKED + _flexHome);
 					setCommandLineState();
 					flexSDKTxtInput.text = _flexHome;
 					install();
@@ -238,6 +245,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					setGUIState();
 				}
+				
 				initiateInstallStepsActivity();
 			}
 			
@@ -245,7 +253,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				if (flexSDKTxtInput.text == "")
 				{
-					log(ViewResourceConstants.getInstance().INFO_ENTER_VALID_FLEX_SDK_PATH);
+					log(_constants.INFO_ENTER_VALID_FLEX_SDK_PATH);
 				}
 				else
 				{
@@ -260,18 +268,19 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function initiateInstallStepsActivity():void
 			{
-				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_CREATE_DIRECTORIES));
-				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK));
-				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK));
-				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT));
-				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT));
-				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC));
-				_installationSteps.addItem(new StepItem(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES));
+				_installationSteps.addItem(new StepItem(_constants.STEP_CREATE_DIRECTORIES));
+				_installationSteps.addItem(new StepItem(_constants.STEP_DOWNLOAD_FLEX_SDK));
+				_installationSteps.addItem(new StepItem(_constants.STEP_UNZIP_FLEX_SDK));
+				_installationSteps.addItem(new StepItem(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT));
+				_installationSteps.addItem(new StepItem(_constants.STEP_UNZIP_AIR_RUNTIME_KIT));
+				_installationSteps.addItem(new StepItem(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC));
+				_installationSteps.addItem(new StepItem(_constants.STEP_INSTALL_CONFIG_FILES));
 			}
 			
 			protected function resetInstallStepsActivity():void
 			{
-				for each(var step:StepItem in _installationSteps){
+				for each(var step:StepItem in _installationSteps)
+				{
 					step.status = StepItem.NORMAL;
 				}
 			}
@@ -299,7 +308,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				if (_args.length == 0)
 				{
-					log(APP_NAME + ViewResourceConstants.getInstance().INFO_INVOKED_GUI_MODE);
+					log(APP_NAME +_constants.INFO_INVOKED_GUI_MODE);
 					return false;
 				}
 				
@@ -324,7 +333,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				var file:File = new File(); 
 				
 				file.addEventListener(Event.SELECT, flexSDKDirSelected); 
-				file.browseForDirectory(ViewResourceConstants.getInstance().INFO_SELECT_DIRECTORY); 
+				file.browseForDirectory(_constants.INFO_SELECT_DIRECTORY); 
 			}
 			
 			protected function flexSDKDirSelected(event:Event):void
@@ -350,51 +359,52 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					}
 					else
 					{
-						flexSDKTxtInput.errorString = ViewResourceConstants.getInstance().ERROR_INVALID_FLEX_SDK_DIRECTORY;
+						flexSDKTxtInput.errorString =_constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
 						installBtn.enabled = false;
 					}
 				}
 				catch(e:Error)
 				{
-					flexSDKTxtInput.errorString = ViewResourceConstants.getInstance().ERROR_INVALID_FLEX_SDK_DIRECTORY;
+					flexSDKTxtInput.errorString =_constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
 					installBtn.enabled = false;
 				}
 			}
 			
 			protected function createDirectories():void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_CREATE_DIRECTORIES, StepItem.ACTIVE);
+				updateActivityStep(_constants.STEP_CREATE_DIRECTORIES, StepItem.ACTIVE);
 				
 				try
 				{
-					log(ViewResourceConstants.getInstance().INFO_CREATING_FLEX_HOME);
+					log(_constants.INFO_CREATING_FLEX_HOME);
 					_flexHomeDir = createFolder(_flexHome);
-					log(ViewResourceConstants.getInstance().INFO_CREATING_TEMP_DIR);
+					log(_constants.INFO_CREATING_TEMP_DIR);
 					_flexTemp = _flexHome + File.separator + "temp";
 					_flexTempDir = createFolder(_flexTemp);
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_CREATE_DIRECTORIES, StepItem.COMPLETE);
+					updateActivityStep(_constants.STEP_CREATE_DIRECTORIES, StepItem.COMPLETE);
 					downloadApacheFlexSDK();
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_CREATE_DIRECTORIES, StepItem.ERROR);
-					log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY);
+					updateActivityStep(_constants.STEP_CREATE_DIRECTORIES, StepItem.ERROR);
+					log(_constants.ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY);
 					abortInstallation();
 				}
 			}
 			
 			protected function downloadApacheFlexSDK():void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ACTIVE);
+				updateActivityStep(_constants.STEP_DOWNLOAD_FLEX_SDK, StepItem.ACTIVE);
+				
 				try
 				{
-					log(ViewResourceConstants.getInstance().INFO_DOWNLOADING_FLEX_SDK + APACHE_FLEX_BIN_DISTRO_URL);
+					log(_constants.INFO_DOWNLOADING_FLEX_SDK + APACHE_FLEX_BIN_DISTRO_URL);
 					_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
 					copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile, handleApacheFlexSDKDownloadError);
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
 					abortInstallation();
 				}
 					
@@ -411,38 +421,42 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
 					abortInstallation();
 				}
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.COMPLETE);	
+				
+				updateActivityStep(_constants.STEP_DOWNLOAD_FLEX_SDK, StepItem.COMPLETE);	
 				unzipApacheFlexSDK();
 			}
 			
 			protected function handleApacheFlexSDKDownloadError(event:*=null):void{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
-				log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_DOWNLOAD_FLEX_SDK);
+				updateActivityStep(_constants.STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
+				log(_constants.ERROR_UNABLE_TO_DOWNLOAD_FLEX_SDK);
 				abortInstallation();
 			}
 			
 			protected function unzipApacheFlexSDK():void
 			{
 				trace("unzipping flex sdk");
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK, StepItem.ACTIVE);
-				try{
-					log(ViewResourceConstants.getInstance().INFO_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
+				updateActivityStep(_constants.STEP_UNZIP_FLEX_SDK, StepItem.ACTIVE);
+				
+				try
+				{
+					log(_constants.INFO_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
 					unzip(_apacheFlexSDKZipFile, handleApacheFlexSDKZipFileUnzipComplete, handleApacheFlexSDKZipFileUnzipError);
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_UNZIP_FLEX_SDK, StepItem.ERROR);
 					abortInstallation();
 				}
 			}
 			
 			protected function handleApacheFlexSDKZipFileUnzipComplete(event:Event):void
 			{
-				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK, StepItem.COMPLETE);	
+				log(_constants.INFO_FINISHED_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
+				updateActivityStep(_constants.STEP_UNZIP_FLEX_SDK, StepItem.COMPLETE);
+				
 				if (_os == WINDOWS_OS)
 				{
 					downloadAIRRuntimeKitForWindows();
@@ -455,38 +469,40 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function handleApacheFlexSDKZipFileUnzipError(error:ErrorEvent=null):void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_FLEX_SDK, StepItem.ERROR);
+				updateActivityStep(_constants.STEP_UNZIP_FLEX_SDK, StepItem.ERROR);
 				abortInstallation();
 			}
 			
 			protected function downloadAIRRuntimeKitForWindows():void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ACTIVE);
+				updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ACTIVE);
+				
 				try
 				{
-					log(ViewResourceConstants.getInstance().INFO_DOWLOADING_AIR_RUNTIME_KIT_WINDOWS + ADOBE_AIR_SDK_WIN_URL);
+					log(_constants.INFO_DOWLOADING_AIR_RUNTIME_KIT_WINDOWS + ADOBE_AIR_SDK_WIN_URL);
 					_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_WIN_FILE);
 					copyOrDownload(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile, handleAIRSDKDownloadError);
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
 					abortInstallation();
 				}
 			}
 			
 			protected function downloadAIRRuntimeKitForMac():void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ACTIVE);
+				updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ACTIVE);
+				
 				try
 				{
-					log(ViewResourceConstants.getInstance().INFO_DOWLOADING_AIR_RUNTIME_KIT_MAC + ADOBE_AIR_SDK_MAC_URL);
+					log(_constants.INFO_DOWLOADING_AIR_RUNTIME_KIT_MAC + ADOBE_AIR_SDK_MAC_URL);
 					_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_MAC_FILE);
 					copyOrDownload(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile, handleAIRSDKDownloadError);
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
 					abortInstallation();
 				}
 			}
@@ -502,30 +518,31 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
 					abortInstallation();
 				}
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.COMPLETE);
+				
+				updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.COMPLETE);
 				
 				unzipAdobeAIRSDK();
 			}
 			
 			protected function handleAIRSDKDownloadError(error:*=null):void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
-				log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_DOWNLOAD_AIR_SDK);
+				updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
+				log(_constants.ERROR_UNABLE_TO_DOWNLOAD_AIR_SDK);
 				abortInstallation();
 			}
 			
 			protected function unzipAdobeAIRSDK():void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ACTIVE);
+				updateActivityStep(_constants.STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ACTIVE);
 				
 				try
 				{
 					if (_os == WINDOWS_OS)
 					{
-						log(ViewResourceConstants.getInstance().INFO_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
+						log(_constants.INFO_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
 						unzip(_adobeAIRSDKZipFile, handleAdobeAIRSDKWinZipFileUnzipComplete, handleAdobeAIRSDKWinZipFileUnzipError);
 						
 					}
@@ -537,54 +554,54 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 						}
 						else
 						{
-							log(ViewResourceConstants.getInstance().ERROR_NATIVE_PROCESS_NOT_SUPPORTED);
-							updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
+							log(_constants.ERROR_NATIVE_PROCESS_NOT_SUPPORTED);
+							updateActivityStep(_constants.STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
 						}
 					}
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
 					abortInstallation();
 				}
 			}
 			
 			protected function handleAdobeAIRSDKMacUntarError(error:ProgressEvent=null):void{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
+				updateActivityStep(_constants.STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
 				abortInstallation();
 			}
 			
 			protected function handleAdobeAIRSDKMacUntarComplete(event:Event):void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.COMPLETE);
-				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNTARING + _adobeAIRSDKZipFile.nativePath);
+				updateActivityStep(_constants.STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.COMPLETE);
+				log(_constants.INFO_FINISHED_UNTARING + _adobeAIRSDKZipFile.nativePath);
 				downloadPlayerGlobalSWC();
 			}
 			
 			protected function handleAdobeAIRSDKWinZipFileUnzipComplete(event:Event):void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.COMPLETE);
-				log(ViewResourceConstants.getInstance().INFO_FINISHED_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
+				updateActivityStep(_constants.STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.COMPLETE);
+				log(_constants.INFO_FINISHED_UNZIPPING + _adobeAIRSDKZipFile.nativePath);
 				downloadPlayerGlobalSWC();
 			}
 			
 			protected function handleAdobeAIRSDKWinZipFileUnzipError(error:ErrorEvent=null):void{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
+				updateActivityStep(_constants.STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
 			}
 			
 			protected function downloadPlayerGlobalSWC():void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ACTIVE);
+				updateActivityStep(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ACTIVE);
 				try
 				{
-					log(ViewResourceConstants.getInstance().INFO_INSTALLING_PLAYERGLOBAL_SWC + ADOBE_FB_GLOBALPLAYER_SWC_URL);
+					log(_constants.INFO_INSTALLING_PLAYERGLOBAL_SWC + ADOBE_FB_GLOBALPLAYER_SWC_URL);
 					_fbGlobalPlayerDir = createFolder(_flexHome + File.separator + "frameworks" + File.separator + "libs" + File.separator + "player" + File.separator + "11.1");
 					_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
 					copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile, handlePlayerGlobalDownloadError);
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
 					abortInstallation();
 				}
 			}
@@ -601,31 +618,33 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 				catch(e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
+					updateActivityStep(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
 					abortInstallation();
 				}
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.COMPLETE);
+				updateActivityStep(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.COMPLETE);
 				copyConfigFiles();
 			}
 			
 			protected function handlePlayerGlobalDownloadError(event:ErrorEvent=null):void
 			{
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
-				log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC);
+				updateActivityStep(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
+				log(_constants.ERROR_UNABLE_TO_DOWNLOAD_FLASH_PLAYER_SWC);
 				abortInstallation();
 			}
 			
 			protected function copyConfigFiles():void
 			{
 				var aborted:Boolean = false;
-				updateActivityStep(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES, StepItem.ACTIVE);
+				
+				updateActivityStep(_constants.STEP_INSTALL_CONFIG_FILES, StepItem.ACTIVE);
+				
 				try
 				{
 					//Config files
 					var configFilesDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "ide" + File.separator + "flashbuilder" + File.separator + "config");
 					var configFiles:Array = configFilesDir.getDirectoryListing();
 					var flexHomeFrameworksDir:File = File.userDirectory.resolvePath(_flexHome + File.separator + "frameworks");
-					log(ViewResourceConstants.getInstance().INFO_INSTALLING_CONFIG_FILES);
+					log(_constants.INFO_INSTALLING_CONFIG_FILES);
 					
 					for each (var file:File in configFiles)
 					{
@@ -636,18 +655,18 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 						}
 					}
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES, StepItem.ERROR);
-					log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_INSTALL_CONFIG_FILES);
+					updateActivityStep(_constants.STEP_INSTALL_CONFIG_FILES, StepItem.ERROR);
+					log(_constants.ERROR_UNABLE_TO_INSTALL_CONFIG_FILES);
 					abortInstallation();
 					aborted = true;
 				}
 				
 				
-				if(!aborted)
+				if (!aborted)
 				{
-					updateActivityStep(ViewResourceConstants.getInstance().STEP_INSTALL_CONFIG_FILES, StepItem.COMPLETE);
+					updateActivityStep(_constants.STEP_INSTALL_CONFIG_FILES, StepItem.COMPLETE);
 					cleanup();
 				}
 			}
@@ -658,52 +677,62 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					_flexTempDir.deleteDirectory(true);
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
-					log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY);	
+					log(_constants.ERROR_UNABLE_TO_DELETE_TEMP_DIRECTORY);	
 				}
-				if(!isAbort)
+				
+				if (!isAbort)
 				{
-					log(ViewResourceConstants.getInstance().INFO_INSTALLATION_COMPLETE);
+					log(_constants.INFO_INSTALLATION_COMPLETE);
 					browseBtn.enabled = true;
 				}
 			}
 			
 			protected function abortInstallation():void{
 				cleanup(true);
-				log(ViewResourceConstants.getInstance().INFO_ABORT_INSTALLATION);
+				log(_constants.INFO_ABORT_INSTALLATION);
 			}
 			
 			protected function _langSelect_changeHandler(event:IndexChangeEvent):void
 			{
 				if (_langSelect.selectedItem["data"] == _runtimeLocale.defaultLanguage)
-					{
-						resourceManager.localeChain = [_runtimeLocale.defaultLanguage];
-						resourceManager.update();
-						}
-					else
 				{
-					resourceManager.localeChain = [_langSelect.selectedItem["data"],_runtimeLocale.defaultLanguage ]
-						resourceManager.update();	
-												
-					}
-				
+					resourceManager.localeChain = [_runtimeLocale.defaultLanguage];
+					resourceManager.update();
 				}
+				else
+				{
+					resourceManager.localeChain = [_langSelect.selectedItem["data"],_runtimeLocale.defaultLanguage];
+					resourceManager.update();	
+				}	
+			}
+			
 			override protected function resourcesChanged():void
 			{
 				super.resourcesChanged();
-				if (browseBtn)
-					browseBtn.label =ViewResourceConstants.getInstance().BROWSE_BTN_LABEL;
 				
+				if (browseBtn)
+				{
+					browseBtn.label = _constants.BROWSE_BTN_LABEL;
+				}
 				if (installBtn)
-					installBtn.label = ViewResourceConstants.getInstance().INSTALL_BTN_LABEL;
+				{
+					installBtn.label = _constants.INSTALL_BTN_LABEL;
+				}
 				if (installLogBtn)
-					installLogBtn.label =ViewResourceConstants.getInstance().INSTALL_LOG_BTN_LABEL;
+				{
+					installLogBtn.label = _constants.INSTALL_LOG_BTN_LABEL;
+				}
 				if (closeBtn)
-					closeBtn.label = ViewResourceConstants.getInstance().CLOSE_BTN_LABEL;
+				{
+					closeBtn.label = _constants.CLOSE_BTN_LABEL;
+				}
 				if (flexSDKTxtInput)
-					flexSDKTxtInput.prompt =ViewResourceConstants.getInstance().SELECT_PATH_PROMPT;
-				}			
+				{
+					flexSDKTxtInput.prompt = _constants.SELECT_PATH_PROMPT;
+				}
+			}
 			
 			/************************ Utility methods *****************/
 			
@@ -730,10 +759,11 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					}
 					catch (error:Error)
 					{
-						if(errorFunction != null){
+						if (errorFunction != null)
+						{
 							errorFunction.call(null);
 						}
-						log(ViewResourceConstants.getInstance().ERROR_UNABLE_TO_COPY_FILE + error.errorID + " " + error.message);
+						log(_constants.ERROR_UNABLE_TO_COPY_FILE + error.errorID + " " + error.message);
 					}
 				}
 			}
@@ -746,7 +776,8 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				loader.dataFormat = URLLoaderDataFormat.BINARY; 
 				loader.addEventListener(Event.COMPLETE, handlerFunction);
 				loader.addEventListener(Event.COMPLETE, handleDownloadComplete);
-				if(errorFunction != null)
+				
+				if (errorFunction != null)
 				{
 					loader.addEventListener(ErrorEvent.ERROR,errorFunction);
 					loader.addEventListener(IOErrorEvent.IO_ERROR,errorFunction);
@@ -765,10 +796,11 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				// show count in command line progress bar in gui
 				if (currentState == "commandLineState" && percentLoaded % 10 == 0 && percentLoaded != _previousDisplayedPercent)
 				{
-					log(ViewResourceConstants.getInstance().INFO_DOWNLOADED + percentLoaded + "%");
+					log(_constants.INFO_DOWNLOADED + percentLoaded + "%");
 					_previousDisplayedPercent = percentLoaded;
 				}
-				else {
+				else
+				{
 					progressBar.percent = percentLoaded;
 				}
 			}
@@ -791,15 +823,14 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				fzip.addEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
 				fzip.addEventListener(Event.COMPLETE, unzipCompleteFunction);
 				fzip.addEventListener(Event.COMPLETE, onUnzipComplete);
-				if(unzipErrorFunction != null)
+				if (unzipErrorFunction != null)
 				{
 					fzip.addEventListener(ErrorEvent.ERROR,unzipErrorFunction);
 					_fileUnzipErrorFunction = unzipErrorFunction
 				}
 				fzip.loadBytes(zipFileBytes);
 			}
-			
-			private var _fileUnzipErrorFunction:Function;
+
 			private function onFileLoaded(e:ZipEvent):void
 			{
 				try
@@ -819,7 +850,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					fs.close();
 					
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					_fileUnzipErrorFunction.call();
 				}
@@ -859,13 +890,15 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function unTarError(event:Event):void
 			{
 				var output:String = _process.standardError.readUTFBytes(_process.standardError.bytesAvailable);
-				log(ViewResourceConstants.getInstance().ERROR_NATIVE_PROCESS_ERROR);
+				
+				log(_constants.ERROR_NATIVE_PROCESS_ERROR);
 				log(output);
 			}
 			
 			protected function unTarFileProgress(event:Event):void
 			{
 				var output:String = _process.standardOutput.readUTFBytes(_process.standardOutput.bytesAvailable);
+				
 				log(output);
 			}
 			
@@ -879,10 +912,13 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private function isValidConfigFile(file:File):Boolean
 			{
 				var name:String = file.name;
-				if (name.search("-config.xml") == -1) {
+				
+				if (name.search("-config.xml") == -1)
+				{
 					return false;
 				}
-				else {
+				else
+				{
 					return true;
 				}
 			}
@@ -895,6 +931,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private function showConsole(event:Event):void 
 			{
 				var console:ConsoleWindow = new ConsoleWindow();
+				
 				console.messages = _messages;
 				console.open();
 				console.nativeWindow.x = this.nativeWindow.x + this.nativeWindow.width/2 - console.nativeWindow.width/2;
@@ -910,14 +947,17 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function clickLogo(event:MouseEvent):void
 			{
-				var url:String = ViewResourceConstants.getInstance().APACHE_FLEX_URL; 
+				var url:String = _constants.APACHE_FLEX_URL; 
 				var urlReq:URLRequest = new URLRequest(url); 
+				
 				navigateToURL(urlReq);
 			}
 			
 			protected function getStepItemFromStepLabel(stepLabel:String):StepItem{
-				for each(var s:StepItem in _installationSteps){
-					if(s.label == stepLabel){
+				for each(var s:StepItem in _installationSteps)
+				{
+					if (s.label == stepLabel)
+					{
 						return s;
 					}
 				}
@@ -927,7 +967,8 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function updateActivityStep(stepLabel:String,status:String):void
 			{
 				var step:StepItem = StepItem(getStepItemFromStepLabel(stepLabel));
-				if(step != null)
+				
+				if (step != null)
 				{
 					step.status = status;
 				}
@@ -935,13 +976,16 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 		]]>
 	</fx:Script>
+	
 	<s:states>
 		<s:State name="guiState" id="guiState" />
 		<s:State name="commandLineState" id="commandLineState" />
 	</s:states>
+	
 	<s:layout>
 		<s:VerticalLayout gap="10" horizontalAlign="center" paddingTop="0" paddingBottom="20" />
 	</s:layout>
+	
 	<s:HGroup width="100%" paddingLeft="20" paddingRight="20" paddingTop="5">
 		<s:Spacer width="100%" />
 		<s:Label id="langLabel" width="80%" horizontalCenter="0" text="Select Language"
@@ -949,24 +993,28 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					text.guiState="Current Language" verticalAlign.guiState="middle"/>
 		<s:ComboBox id="_langSelect" includeIn="guiState" width="184"
 							change="_langSelect_changeHandler(event)"/>
-		</s:HGroup>
+	</s:HGroup>
+	
 	<s:HGroup width="80%" enabled="false" enabled.guiState="true" paddingTop="300">
-		<s:TextInput id="flexSDKTxtInput" width="100%" prompt="{ViewResourceConstants.getInstance().SELECT_PATH_PROMPT}"
+		<s:TextInput id="flexSDKTxtInput" width="100%" prompt="{_constants.SELECT_PATH_PROMPT}"
 					 change="handleFlexSDXTxtInputChange(event)"/>
 		<s:Button id="browseBtn" styleName="browseBtnStyle" width="88" height="32"
-				  label="{ViewResourceConstants.getInstance().BROWSE_BTN_LABEL}" click="browseForSDK(event)" toolTip="{ViewResourceConstants.getInstance().INFO_SELECT_DIRECTORY}" />
+				  label="{_constants.BROWSE_BTN_LABEL}" click="browseForSDK(event)" toolTip="{_constants.INFO_SELECT_DIRECTORY}" />
 		<s:Button id="installBtn" styleName="installBtnStyle" width="88" height="32"
-				  label="{ViewResourceConstants.getInstance().INSTALL_BTN_LABEL}" enabled="false" click="handleInstallBtnClick(event)" />
+				  label="{_constants.INSTALL_BTN_LABEL}" enabled="false" click="handleInstallBtnClick(event)" />
 	</s:HGroup>
+	
 	<controls1:MultiStepProgressIndicator steps="{_installationSteps}" />
 	<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" horizontalCenter="0" />
+	
 	<controls:ProgressBar id="progressBar" width="60%" height="21" />
 	<s:Spacer height="100%" />
+	
 	<s:HGroup width="100%" paddingLeft="20" paddingRight="20" paddingTop="0">
 		<s:Button id="installLogBtn" styleName="genericBtnStyle" width="110" height="32"
-				  label="{ViewResourceConstants.getInstance().INSTALL_LOG_BTN_LABEL}" click="showConsole(event)" />
+				  label="{_constants.INSTALL_LOG_BTN_LABEL}" click="showConsole(event)" />
 		<s:Spacer width="100%" />
 		<s:Button id="closeBtn" styleName="genericBtnStyle" width="88" height="32" 
-				  label="{ViewResourceConstants.getInstance().CLOSE_BTN_LABEL}" click="closeApplication(event)" />
+				  label="{_constants.CLOSE_BTN_LABEL}" click="closeApplication(event)" />
 	</s:HGroup>
 </s:WindowedApplication>
