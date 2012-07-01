@@ -21,7 +21,8 @@ limitations under the License.
 		  xmlns:s="library://ns.adobe.com/flex/spark" 
 		  xmlns:mx="library://ns.adobe.com/flex/mx"
 		  title="Install Log" width="600" height="300" showStatusBar="false"
-		  skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" >
+		  skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin">
+	
 	<fx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
@@ -39,11 +40,13 @@ limitations under the License.
 
 			private function handleCopyBtnClick(event:MouseEvent):void
 			{
-				var logText:String="";
+				var logText:String = "";
+				
 				for each (var str:Object in messages)
 				{
 					logText += str.toString() + "\n";
 				}
+				
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT,logText);
 			}
 			
