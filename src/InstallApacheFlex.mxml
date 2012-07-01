@@ -393,7 +393,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				var file:File = new File(playerFile);
 				
 				// check for existance of  player global
-				if (!file.exists)
+				if (file.exists)
 				{
 					unpackaged = false;
 					flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
