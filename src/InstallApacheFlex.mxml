@@ -44,6 +44,9 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 	
 	<fx:Script>
 		<![CDATA[	
+			import flash.globalization.LocaleID;
+			import flash.globalization.StringTools;
+			
 			import mx.binding.utils.BindingUtils;
 			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
@@ -119,11 +122,26 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				centerWindow();
 				_args = event.arguments;
-				loadXML();
-				_langSelect.dataProvider = _runtimeLocale.supportedLanguage;
-				_langSelect.selectedIndex =0;
-				_runtimeLocale.enumerateBundles();
 				_constants = ViewResourceConstants.getInstance();
+				_runtimeLocale.enumerateBundles();
+				_langSelect.dataProvider = _runtimeLocale.supportedLanguage;
+				_langSelect.selectedIndex = 0;
+				selectDefaultLanguage();
+				loadXML();
+			}
+			
+			protected function selectDefaultLanguage():void {
+				var length:int = _runtimeLocale.supportedLanguage.length;
+				var tool:StringTools = new StringTools(LocaleID.DEFAULT);
+				var userLocale:String = tool.actualLocaleIDName.replace("-","_");
+				
+				for (var i:int = 0; i < length; i++)
+				{
+					if (_runtimeLocale.supportedLanguage[i].data == userLocale) {
+						_langSelect.selectedIndex = i;
+						break;
+					}
+				}
 			}
 			
 			protected function centerWindow():void
@@ -338,34 +356,77 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function flexSDKDirSelected(event:Event):void
 			{
-				_flexHome = File(event.target).nativePath;
-				flexSDKTxtInput.text = _flexHome;
-				installBtn.enabled = true;
-				_langSelect.enabled = true;
+				var flexPath:String =  File(event.target).nativePath;
+				
+				if (validApacheSDK(flexPath) && SDKNotPackaged(flexPath))
+				{
+					_flexHome = flexPath;
+					flexSDKTxtInput.text = flexPath;
+					installBtn.enabled = true;
+					_langSelect.enabled = true;
+				}
+			}
+			
+			protected function validApacheSDK(flexPath:String):Boolean
+			{
+				var valid:Boolean = true;
+				var descriptionFile:String = flexPath + File.separator + "flex-sdk-description.xml";
+				var file:File = new File(descriptionFile);
+				
+				// Check flex SDK diretory has flex description file
+				if (!file.exists)
+				{
+					valid = false;
+					flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
+				}
+				
+				// TODO Check is Apache not Adobe SDK
+				
+				return valid;
+			}
+			
+			protected function SDKNotPackaged(flexPath:String):Boolean
+			{
+				var unpackaged:Boolean = true;
+				var playerFile:String = flexPath + File.separator + "frameworks" + File.separator + "libs" + File.separator
+					+ "player" + File.separator + "11.1" + File.separator + "playerglobal.swc"; 
+				var file:File = new File(playerFile);
+				
+				// check for existance of  player global
+				if (file.exists)
+				{
+					unpackaged = false;
+					flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
+				}
+				
+				return unpackaged;
 			}
 			
 			protected function handleFlexSDXTxtInputChange(event:TextOperationEvent):void
 			{
-				var tempDir:File
+				var tempDir:File;
+				var path:String = flexSDKTxtInput.text;
+				
 				try
 				{
-					tempDir = new File(flexSDKTxtInput.text);
-					if(tempDir != null)
+					tempDir = new File(path);
+					
+					if (validApacheSDK(path) && SDKNotPackaged(path))
 					{
 						flexSDKTxtInput.errorString = "";
-						_flexHome = flexSDKTxtInput.text;
+						_flexHome = path;
 						installBtn.enabled = true;
 						_langSelect.enabled = true;
 					}
 					else
 					{
-						flexSDKTxtInput.errorString =_constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
+						flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
 						installBtn.enabled = false;
 					}
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
-					flexSDKTxtInput.errorString =_constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
+					flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
 					installBtn.enabled = false;
 				}
 			}
@@ -384,7 +445,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					updateActivityStep(_constants.STEP_CREATE_DIRECTORIES, StepItem.COMPLETE);
 					downloadApacheFlexSDK();
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_CREATE_DIRECTORIES, StepItem.ERROR);
 					log(_constants.ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY);
@@ -402,7 +463,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
 					copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile, handleApacheFlexSDKDownloadError);
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
 					abortInstallation();
@@ -419,7 +480,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					fs.writeBytes(event.target.data); 
 					fs.close();
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
 					abortInstallation();
@@ -445,7 +506,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					log(_constants.INFO_UNZIPPING + _apacheFlexSDKZipFile.nativePath);
 					unzip(_apacheFlexSDKZipFile, handleApacheFlexSDKZipFileUnzipComplete, handleApacheFlexSDKZipFileUnzipError);
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_UNZIP_FLEX_SDK, StepItem.ERROR);
 					abortInstallation();
@@ -483,7 +544,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_WIN_FILE);
 					copyOrDownload(ADOBE_AIR_SDK_WIN_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile, handleAIRSDKDownloadError);
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
 					abortInstallation();
@@ -500,7 +561,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					_adobeAIRSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_AIR_SDK_MAC_FILE);
 					copyOrDownload(ADOBE_AIR_SDK_MAC_URL, handleAIRSDKDownload, _adobeAIRSDKZipFile, handleAIRSDKDownloadError);
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
 					abortInstallation();
@@ -516,7 +577,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					fs.writeBytes(event.target.data); 
 					fs.close();
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_DOWNLOAD_AIR_RUNTIME_KIT, StepItem.ERROR);
 					abortInstallation();
@@ -559,7 +620,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 						}
 					}
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_UNZIP_AIR_RUNTIME_KIT, StepItem.ERROR);
 					abortInstallation();
@@ -592,6 +653,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function downloadPlayerGlobalSWC():void
 			{
 				updateActivityStep(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ACTIVE);
+				
 				try
 				{
 					log(_constants.INFO_INSTALLING_PLAYERGLOBAL_SWC + ADOBE_FB_GLOBALPLAYER_SWC_URL);
@@ -599,7 +661,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					_fbGlobalPlayerFile = File.userDirectory.resolvePath(_fbGlobalPlayerDir.nativePath + File.separator + "playerglobal.swc");
 					copyOrDownload(ADOBE_FB_GLOBALPLAYER_SWC_URL, handlePlayerGlobalDownload, _fbGlobalPlayerFile, handlePlayerGlobalDownloadError);
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
 					abortInstallation();
@@ -616,7 +678,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					fs.writeBytes(event.target.data); 
 					fs.close();
 				}
-				catch(e:Error)
+				catch (e:Error)
 				{
 					updateActivityStep(_constants.STEP_DOWNLOAD_FLASHPLAYER_SWC, StepItem.ERROR);
 					abortInstallation();
@@ -739,7 +801,9 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private function createFolder(path:String):File
 			{
 				var dir:File = new File(path);
+				
 				dir.createDirectory();
+				
 				return dir;
 			}
 			
@@ -856,9 +920,9 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 			}
 			
-			private function onUnzipComplete(e:Event):void
+			private function onUnzipComplete(event:Event):void
 			{
-				var fzip:Zip = e.target as Zip;
+				var fzip:Zip = event.target as Zip;
 				
 				fzip.removeEventListener(ZipEvent.FILE_LOADED, onFileLoaded);
 				fzip.removeEventListener(Event.COMPLETE, onUnzipComplete);
