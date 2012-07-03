@@ -38,23 +38,26 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					   width="800" height="600" maxWidth="800" maxHeight="550" minWidth="800" minHeight="550"
 					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
 					   invoke="applicationInvoked(event)" showStatusBar="false"
-					   skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*">
+					   skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*" xmlns:components="org.apache.flex.packageflexsdk.view.components.*">
 	<fx:Style source="assets/styles/styles.css" />
 	<fx:Script>
 		<![CDATA[	
 			import mx.binding.utils.BindingUtils;
 			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
+			import mx.events.EffectEvent;
 			
+			import org.apache.flex.packageflexsdk.resource.RuntimeLocale;
 			import org.apache.flex.packageflexsdk.resource.ViewResourceConstants;
+			import org.apache.flex.packageflexsdk.view.components.MPLLicense;
 			import org.apache.flex.packageflexsdk.view.components.ConsoleWindow;
+			import org.apache.flex.packageflexsdk.view.components.AdobeLicense;
 			import org.as3commons.zip.Zip;
 			import org.as3commons.zip.ZipEvent;
 			import org.as3commons.zip.ZipFile;
 			
-			import runtimeResources.RuntimeLocale;
-			
 			import spark.components.Window;
+			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			import spark.events.TextOperationEvent;
 			
@@ -93,7 +96,6 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private const WINDOWS_OS:String = "windows";
 			private const MAC_OS:String = "mac";
 			
-			private var _args:Array;
 			private var _flexHome:String;
 			private var _flexTemp:String;
 			private var _flexHomeDir:File;
@@ -107,6 +109,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private var _process:NativeProcess;
 			private var _previousDisplayedPercent:int = 0;
 			[Bindable] private var _installationSteps:ArrayCollection = new ArrayCollection();
+			[Bindable] private var _optionalInstallsDataProvider:ArrayCollection = new ArrayCollection();
 			
 			[Bindable] public var _messages:ArrayCollection = new ArrayCollection();
 			private var _runtimeLocale:RuntimeLocale = new RuntimeLocale;
@@ -114,7 +117,6 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function applicationInvoked(event:InvokeEvent):void
 			{
 				centerWindow();
-				_args = event.arguments;
 				loadXML();
 				_langSelect.dataProvider = _runtimeLocale.supportedLanguage;
 				_langSelect.selectedIndex =0;
@@ -225,11 +227,12 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function main():void
 			{
+
 				var isValidCommandLineInvocaton:Boolean = validateArguments();
 				
 				if (isValidCommandLineInvocaton)
 				{
-					log(ViewResourceConstants.getInstance().INFO_APP_INVOKED + _flexHome);
+					log(_constants.INFO_APP_INVOKED + _flexHome);
 					setCommandLineState();
 					flexSDKTxtInput.text = _flexHome;
 					install();
@@ -250,12 +253,17 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				else
 				{
 					browseBtn.enabled = false;
-					installBtn.enabled = false;
+					nextBtn.enabled = false;
 					_langSelect.enabled = false;
 					_flexHome = flexSDKTxtInput.text;
 					resetInstallStepsActivity();
 					install();
 				}
+			}
+			
+			protected function handleNextBtnClick(event:MouseEvent):void
+			{
+				currentState = "optionsState";
 			}
 			
 			protected function initiateInstallStepsActivity():void
@@ -281,6 +289,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				createDirectories();
 			}
 			
+
 			protected function setCommandLineState():void
 			{
 				currentState = "commandLineState";
@@ -299,7 +308,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				if (_args.length == 0)
 				{
-					log(APP_NAME + ViewResourceConstants.getInstance().INFO_INVOKED_GUI_MODE);
+					log(APP_NAME +_constants.INFO_INVOKED_GUI_MODE);
 					return false;
 				}
 				
@@ -324,15 +333,55 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				var file:File = new File(); 
 				
 				file.addEventListener(Event.SELECT, flexSDKDirSelected); 
-				file.browseForDirectory(ViewResourceConstants.getInstance().INFO_SELECT_DIRECTORY); 
+				file.browseForDirectory(_constants.INFO_SELECT_DIRECTORY); 
 			}
 			
 			protected function flexSDKDirSelected(event:Event):void
 			{
-				_flexHome = File(event.target).nativePath;
-				flexSDKTxtInput.text = _flexHome;
-				installBtn.enabled = true;
-				_langSelect.enabled = true;
+				var flexPath:String =  File(event.target).nativePath;
+				
+				if (validApacheSDK(flexPath) && SDKNotPackaged(flexPath))
+				{
+					_flexHome = flexPath;
+					flexSDKTxtInput.text = flexPath;
+					installBtn.enabled = true;
+					_langSelect.enabled = true;
+				}
+			}
+			
+			protected function validApacheSDK(flexPath:String):Boolean
+			{
+				var valid:Boolean = true;
+				var descriptionFile:String = flexPath + File.separator + "flex-sdk-description.xml";
+				var file:File = new File(descriptionFile);
+				
+				// Check flex SDK diretory has flex description file
+				if (!file.exists)
+				{
+					valid = false;
+					flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
+				}
+				
+				// TODO Check is Apache not Adobe SDK
+				
+				return valid;
+			}
+			
+			protected function SDKNotPackaged(flexPath:String):Boolean
+			{
+				var unpackaged:Boolean = true;
+				var playerFile:String = flexPath + File.separator + "frameworks" + File.separator + "libs" + File.separator
+					+ "player" + File.separator + "11.1" + File.separator + "playerglobal.swc"; 
+				var file:File = new File(playerFile);
+				
+				// check for existance of  player global
+				if (file.exists)
+				{
+					unpackaged = false;
+					flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
+				}
+				
+				return unpackaged;
 			}
 			
 			protected function handleFlexSDXTxtInputChange(event:TextOperationEvent):void
@@ -345,19 +394,19 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					{
 						flexSDKTxtInput.errorString = "";
 						_flexHome = flexSDKTxtInput.text;
-						installBtn.enabled = true;
+						nextBtn.enabled = true;
 						_langSelect.enabled = true;
 					}
 					else
 					{
 						flexSDKTxtInput.errorString = ViewResourceConstants.getInstance().ERROR_INVALID_FLEX_SDK_DIRECTORY;
-						installBtn.enabled = false;
+						nextBtn.enabled = false;
 					}
 				}
 				catch(e:Error)
 				{
 					flexSDKTxtInput.errorString = ViewResourceConstants.getInstance().ERROR_INVALID_FLEX_SDK_DIRECTORY;
-					installBtn.enabled = false;
+					nextBtn.enabled = false;
 				}
 			}
 			
@@ -397,7 +446,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					updateActivityStep(ViewResourceConstants.getInstance().STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
 					abortInstallation();
 				}
-					
+				
 			}
 			
 			protected function handleApacheFlexSDKDownload(event:Event):void
@@ -677,33 +726,42 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function _langSelect_changeHandler(event:IndexChangeEvent):void
 			{
 				if (_langSelect.selectedItem["data"] == _runtimeLocale.defaultLanguage)
-					{
-						resourceManager.localeChain = [_runtimeLocale.defaultLanguage];
-						resourceManager.update();
-						}
-					else
 				{
-					resourceManager.localeChain = [_langSelect.selectedItem["data"],_runtimeLocale.defaultLanguage ]
-						resourceManager.update();	
-												
-					}
-				
+					resourceManager.localeChain = [_runtimeLocale.defaultLanguage];
+					resourceManager.update();
 				}
+				else
+				{
+					resourceManager.localeChain = [_langSelect.selectedItem["data"],_runtimeLocale.defaultLanguage];
+					resourceManager.update();	
+				}	
+			}
+			
 			override protected function resourcesChanged():void
 			{
 				super.resourcesChanged();
-				if (browseBtn)
-					browseBtn.label =ViewResourceConstants.getInstance().BROWSE_BTN_LABEL;
 				
+				if (browseBtn)
+				{
+					browseBtn.label = _constants.BROWSE_BTN_LABEL;
+				}
 				if (installBtn)
-					installBtn.label = ViewResourceConstants.getInstance().INSTALL_BTN_LABEL;
+				{
+					installBtn.label = _constants.INSTALL_BTN_LABEL;
+				}
 				if (installLogBtn)
-					installLogBtn.label =ViewResourceConstants.getInstance().INSTALL_LOG_BTN_LABEL;
+				{
+					installLogBtn.label = _constants.INSTALL_LOG_BTN_LABEL;
+				}
 				if (closeBtn)
-					closeBtn.label = ViewResourceConstants.getInstance().CLOSE_BTN_LABEL;
+				{
+					closeBtn.label = _constants.CLOSE_BTN_LABEL;
+				}
 				if (flexSDKTxtInput)
-					flexSDKTxtInput.prompt =ViewResourceConstants.getInstance().SELECT_PATH_PROMPT;
-				}			
+				{
+					flexSDKTxtInput.prompt = _constants.SELECT_PATH_PROMPT;
+				}
+			}
 			
 			/************************ Utility methods *****************/
 			
@@ -765,10 +823,11 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				// show count in command line progress bar in gui
 				if (currentState == "commandLineState" && percentLoaded % 10 == 0 && percentLoaded != _previousDisplayedPercent)
 				{
-					log(ViewResourceConstants.getInstance().INFO_DOWNLOADED + percentLoaded + "%");
+					log(_constants.INFO_DOWNLOADED + percentLoaded + "%");
 					_previousDisplayedPercent = percentLoaded;
 				}
-				else {
+				else
+				{
 					progressBar.percent = percentLoaded;
 				}
 			}
@@ -874,7 +933,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				_process.closeInput();
 				_process.exit(true);
 			}
-
+			
 			
 			private function isValidConfigFile(file:File):Boolean
 			{
@@ -899,6 +958,22 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				console.open();
 				console.nativeWindow.x = this.nativeWindow.x + this.nativeWindow.width/2 - console.nativeWindow.width/2;
 				console.nativeWindow.y = this.nativeWindow.y + this.nativeWindow.height/2 - console.nativeWindow.height/2;
+			}
+
+			private function showMPLLicense(event:Event):void 
+			{
+				var licenseWindow:MPLLicense = new MPLLicense();
+				licenseWindow.open();
+				licenseWindow.nativeWindow.x = this.nativeWindow.x + this.nativeWindow.width/2 - licenseWindow.nativeWindow.width/2;
+				licenseWindow.nativeWindow.y = this.nativeWindow.y + this.nativeWindow.height/2 - licenseWindow.nativeWindow.height/2;
+			}
+			
+			private function showAdobeLicense(event:Event):void 
+			{
+				var licenseWindow:AdobeLicense = new AdobeLicense();
+				licenseWindow.open();
+				licenseWindow.nativeWindow.x = this.nativeWindow.x + this.nativeWindow.width/2 - licenseWindow.nativeWindow.width/2;
+				licenseWindow.nativeWindow.y = this.nativeWindow.y + this.nativeWindow.height/2 - licenseWindow.nativeWindow.height/2;
 			}
 			
 			private function closeApplication(event:Event):void 
@@ -933,40 +1008,134 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 			}
 			
+			protected function placeFirstGroup():void
+			{
+				firstStepGroup.x = this.width/2 - firstStepGroup.width/2;
+			}
+			
+			protected function placeSecondGroup():void
+			{
+				secondStepGroup.x = this.width/2 - secondStepGroup.width/2;
+			}
+			
+			protected function placeThirdGroup():void
+			{
+				thirdStepGroup.x = this.width/2 - thirdStepGroup.width/2;
+			}
+			
 		]]>
 	</fx:Script>
+	<fx:Declarations>
+		<s:Sine id="ease" />
+		<s:BlurFilter id="blur"/>
+	</fx:Declarations>
 	<s:states>
-		<s:State name="guiState" id="guiState" />
-		<s:State name="commandLineState" id="commandLineState" />
+		<s:State name="default" />
+		<s:State name="optionsState" />
+		<s:State name="installState" />
 	</s:states>
+	<s:transitions>
+		<s:Transition id="showDefault" fromState="*" toState="default">
+			<s:Sequence id="t0" targets="{[firstStepGroup]}" effectEnd="placeFirstGroup()">
+				<s:SetAction target="{firstStepGroup}" property="visible" value="true"/>
+				<s:SetAction target="{secondStepGroup}" property="visible" value="false"/>
+				<s:SetAction target="{thirdStepGroup}" property="visible" value="false"/>
+				<s:Move target="{firstStepGroup}" xFrom="800" xTo="{this.width/2 - firstStepGroup.width/2}" duration="500" easer="{ease}" />
+				<s:Parallel targets="{[firstStepGroup]}" >
+					<s:AnimateFilter target="{firstStepGroup}" bitmapFilter="{blur}" duration="200" repeatCount="2" repeatBehavior="reverse"> 
+						<s:SimpleMotionPath property="blurY" valueFrom="1" valueTo="20"/> 
+					</s:AnimateFilter>
+				</s:Parallel>
+			</s:Sequence>
+		</s:Transition>
+		<s:Transition id="showOptions" fromState="*" toState="optionsState">
+			<s:Sequence id="t1" targets="{[secondStepGroup]}" effectEnd="placeSecondGroup()">
+				<s:SetAction target="{firstStepGroup}" property="visible" value="false"/>
+				<s:SetAction target="{secondStepGroup}" property="visible" value="true"/>
+				<s:SetAction target="{thirdStepGroup}" property="visible" value="false"/>
+				<s:Move target="{secondStepGroup}" xFrom="800" xTo="{this.width/2 - secondStepGroup.width/2}" duration="500" easer="{ease}" />
+				<s:Parallel targets="{[secondStepGroup]}" >
+					<s:AnimateFilter target="{secondStepGroup}" bitmapFilter="{blur}" duration="200" repeatCount="2" repeatBehavior="reverse"> 
+						<s:SimpleMotionPath property="blurY" valueFrom="1" valueTo="20"/> 
+					</s:AnimateFilter>
+				</s:Parallel>
+			</s:Sequence>
+		</s:Transition>
+		<s:Transition id="showInstall" fromState="*" toState="installState">
+			<s:Sequence id="t2" targets="{[thirdStepGroup]}" effectEnd="placeThirdGroup()">
+				<s:SetAction target="{firstStepGroup}" property="visible" value="false"/>
+				<s:SetAction target="{secondStepGroup}" property="visible" value="false"/>
+				<s:SetAction target="{thirdStepGroup}" property="visible" value="true"/>
+				<s:Move target="{thirdStepGroup}" xFrom="800" xTo="{this.width/2 - thirdStepGroup.width/2}" duration="500" easer="{ease}" />
+				<s:Parallel targets="{[thirdStepGroup]}" >
+					<s:AnimateFilter target="{thirdStepGroup}" bitmapFilter="{blur}" duration="200" repeatCount="2" repeatBehavior="reverse"> 
+						<s:SimpleMotionPath property="blurY" valueFrom="1" valueTo="20"/> 
+					</s:AnimateFilter>
+				</s:Parallel>
+			</s:Sequence>
+		</s:Transition>
+	</s:transitions>
 	<s:layout>
-		<s:VerticalLayout gap="10" horizontalAlign="center" paddingTop="0" paddingBottom="20" />
+		<s:BasicLayout />
 	</s:layout>
-	<s:HGroup width="100%" paddingLeft="20" paddingRight="20" paddingTop="5">
+	<s:HGroup left="0" right="0" paddingLeft="20" paddingRight="20" paddingTop="5">
+		<s:Button label="first" click="currentState = 'default'" />
+		<s:Button label="second" click="currentState = 'optionsState'" />
+		<s:Button label="third" click="currentState = 'installState'" />
+		<s:Button label="MPLLicense" click="{showMPLLicense(event)}" />
+		<s:Button label="Adobe License" click="{showAdobeLicense(event)}" />
+		<s:Label id="langLabel" width="80%" horizontalCenter="0" 
+				 height="100%" textAlign="right"
+				 text="Current Language" verticalAlign="middle"/>
+		<s:ComboBox id="_langSelect" width="184" change="_langSelect_changeHandler(event)"/>
 		<s:Spacer width="100%" />
-		<s:Label id="langLabel" width="80%" horizontalCenter="0" text="Select Language"
-					height.guiState="100%" horizontalCenter.guiState="0" textAlign.guiState="right"
-					text.guiState="Current Language" verticalAlign.guiState="middle"/>
-		<s:ComboBox id="_langSelect" includeIn="guiState" width="184"
-							change="_langSelect_changeHandler(event)"/>
-		</s:HGroup>
-	<s:HGroup width="80%" enabled="false" enabled.guiState="true" paddingTop="300">
+	</s:HGroup>
+	<s:Panel id="firstStepGroup" title="Select installation directory" width="640" height="175" top="300" x="{firstStepGroup.x = this.width/2 - firstStepGroup.width/2}"
+			 visible="true" visible.optionsState="false" visible.installState="false"  
+			 backgroundAlpha="0" >
+		<s:layout>
+			<s:HorizontalLayout verticalAlign="middle" paddingRight="10" paddingLeft="10" />
+		</s:layout>
 		<s:TextInput id="flexSDKTxtInput" width="100%" prompt="{ViewResourceConstants.getInstance().SELECT_PATH_PROMPT}"
 					 change="handleFlexSDXTxtInputChange(event)"/>
 		<s:Button id="browseBtn" styleName="browseBtnStyle" width="88" height="32"
 				  label="{ViewResourceConstants.getInstance().BROWSE_BTN_LABEL}" click="browseForSDK(event)" toolTip="{ViewResourceConstants.getInstance().INFO_SELECT_DIRECTORY}" />
-		<s:Button id="installBtn" styleName="installBtnStyle" width="88" height="32"
-				  label="{ViewResourceConstants.getInstance().INSTALL_BTN_LABEL}" enabled="false" click="handleInstallBtnClick(event)" />
-	</s:HGroup>
-	<controls1:MultiStepProgressIndicator steps="{_installationSteps}" />
-	<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" horizontalCenter="0" />
-	<controls:ProgressBar id="progressBar" width="60%" height="21" />
-	<s:Spacer height="100%" />
-	<s:HGroup width="100%" paddingLeft="20" paddingRight="20" paddingTop="0">
+		<s:Button id="nextBtn" styleName="mainBtnStyle" width="88" height="32"
+				  label="{ViewResourceConstants.getInstance().NEXT_BTN_LABEL}" enabled="false" click="handleNextBtnClick(event)" />
+	</s:Panel>
+	<s:Panel id="secondStepGroup" title="Select components" width="640" height="175" top="300" visible="false" visible.optionsState="true" 
+			 backgroundAlpha="0" >
+		<s:controlBarContent>
+			<s:Button id="installBtn" styleName="mainBtnStyle" width="88" height="32"
+					  label="{ViewResourceConstants.getInstance().INSTALL_BTN_LABEL}" enabled="false" click="handleInstallBtnClick(event)" />
+		</s:controlBarContent>
+		<s:layout>
+			<s:HorizontalLayout verticalAlign="middle" paddingRight="10" paddingLeft="10" />
+		</s:layout>
+		<s:List width="50%" height="100%" dataProvider="{_optionalInstallsDataProvider}">
+			<s:layout>
+				<s:VerticalLayout />
+			</s:layout>
+		</s:List>
+		<s:TextArea id="optionalInstallsTxtArea" width="50%" height="100%" />
+	</s:Panel>
+	
+	<s:Panel id="thirdStepGroup" title="Installing..."  width="640" height="175" top="300" visible="false" visible.installState="true" 
+			 backgroundAlpha="0">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center" paddingTop="10" paddingRight="10" paddingLeft="10" />
+		</s:layout>
+		<controls1:MultiStepProgressIndicator top="" steps="{_installationSteps}" />
+		<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" horizontalCenter="0" />
+		<controls:ProgressBar id="progressBar" width="60%" height="21" />
+		<s:Spacer height="100%" />
+	</s:Panel>
+	<s:HGroup left="0" right="0" bottom="20" paddingLeft="20" paddingRight="20" paddingTop="0">
 		<s:Button id="installLogBtn" styleName="genericBtnStyle" width="110" height="32"
 				  label="{ViewResourceConstants.getInstance().INSTALL_LOG_BTN_LABEL}" click="showConsole(event)" />
 		<s:Spacer width="100%" />
 		<s:Button id="closeBtn" styleName="genericBtnStyle" width="88" height="32" 
 				  label="{ViewResourceConstants.getInstance().CLOSE_BTN_LABEL}" click="closeApplication(event)" />
 	</s:HGroup>
+	
 </s:WindowedApplication>

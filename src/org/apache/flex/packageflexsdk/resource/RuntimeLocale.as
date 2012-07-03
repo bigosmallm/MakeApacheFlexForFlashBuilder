@@ -18,7 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-package runtimeResources
+package org.apache.flex.packageflexsdk.resource
 {
 	import mx.collections.ArrayCollection;
 	import mx.resources.IResourceManager;
@@ -94,6 +94,7 @@ package runtimeResources
 			_resource.content["install_btn_label"]="INSTALL";
 			_resource.content["close_btn_label"]="CLOSE";
 			_resource.content["select_path_prompt"]="Enter Flex SDK path or browse to select a path";
+			_resource.content["next_btn_label"]="NEXT";
 
 			_resource.content["info_dowloading_air_runtime_kit_mac"]="Downloading Adobe AIR Runtime Kit for Mac from: ";
 			_resource.content["info_finished_untaring"]="Finished untaring: ";
@@ -130,6 +131,7 @@ package runtimeResources
 			_resource.content["error_invalid_flex_sdk_directory"]="Invalid Flex SDK directory selected";
 			_resource.content["error_unable_to_install_config_files"]="Unable to install configuration files";
 			
+			
 			_resource.content["config_url"]="ApacheFlexConfig.xml";
 			_resource.content["apache_flex_url"]="http://incubator.apache.org/flex/";
 
@@ -140,6 +142,21 @@ package runtimeResources
 			_resource.content["step_download_flex_sdk"]="Download Apache Flex SDK";
 			_resource.content["step_install_config_files"]="Install Framework Configuration Files";
 			_resource.content["step_create_directories"]="Create Directories";
+			
+			//Optional install prompts
+			_resource.content["ask_osmf"]="The Open Source Media Framework (OSMF) used by the video components is licensed under the Mozilla Public License Version 1.1.";
+			_resource.content["ask_tlf"]="The Adobe Text Layout Framework (TLF) used by the Spark text components is licensed under the Mozilla Public License Version 1.1.";
+			_resource.content["ask_font"]="Apache Flex can optionally integrate with Adobe's embedded font support.  " +
+											"This feature requires a few font jars from the Adobe Flex SDK.  " +
+											"The Adobe SDK license agreement for Adobe Flex 4.6 applies to these jars.  " +
+											"This license is not compatible with the Apache v2 license.  " +
+											"Do you want to install these jars from the Adobe Flex SDK?";
+
+			_resource.content["ask_blazeds"]="Apache Flex can optionally integrate with Adobe BlazeDS.  " +
+												"This feature requires flex-messaging-common.jar from the Adobe Flex SDK.  " +
+												"The Adobe SDK license agreement for Adobe Flex 4.6 applies to this jar.  " +
+												"This license is not compatible with the Apache v2 license.  " +
+												"Do you want to install this jar from the Adobe Flex SDK?"
 			
 			_resourceManager.addResourceBundle(_resource);
 			_resourceManager.update();
