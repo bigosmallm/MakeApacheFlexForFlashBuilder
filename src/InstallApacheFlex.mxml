@@ -358,7 +358,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				var flexPath:String =  File(event.target).nativePath;
 				
-				if (validApacheSDK(flexPath) && SDKNotPackaged(flexPath))
+				if (SDKNotPackaged(flexPath))
 				{
 					_flexHome = flexPath;
 					flexSDKTxtInput.text = flexPath;
@@ -367,6 +367,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 			}
 			
+			// Not called but may be useful to check download?
 			protected function validApacheSDK(flexPath:String):Boolean
 			{
 				var valid:Boolean = true;
@@ -411,7 +412,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					tempDir = new File(path);
 					
-					if (validApacheSDK(path) && SDKNotPackaged(path))
+					if (SDKNotPackaged(path))
 					{
 						flexSDKTxtInput.errorString = "";
 						_flexHome = path;
