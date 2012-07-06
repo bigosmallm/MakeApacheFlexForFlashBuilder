@@ -93,7 +93,7 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["install_log_btn_label"]="INSTALL LOG";
 			_resource.content["install_btn_label"]="INSTALL";
 			_resource.content["close_btn_label"]="CLOSE";
-			_resource.content["select_path_prompt"]="Enter Flex SDK path or browse to select a path";
+			_resource.content["select_path_prompt"]="Where do you want to install the Apache Flex SDK?";
 			_resource.content["next_btn_label"]="NEXT";
 
 			_resource.content["info_dowloading_air_runtime_kit_mac"]="Downloading Adobe AIR Runtime Kit for Mac from: ";
