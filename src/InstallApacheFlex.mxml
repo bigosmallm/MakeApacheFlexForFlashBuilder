@@ -38,7 +38,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					   width="800" height="600" maxWidth="800" maxHeight="550" minWidth="800" minHeight="550"
 					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
 					   invoke="applicationInvoked(event)" showStatusBar="false"
-					   skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*" xmlns:components="org.apache.flex.packageflexsdk.view.components.*">
+					   skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*">
 	
 	<fx:Style source="assets/styles/styles.css" />
 	
@@ -50,20 +50,16 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			import mx.binding.utils.BindingUtils;
 			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
-			import mx.events.EffectEvent;
-			import mx.utils.StringUtil;
 			
-			import org.apache.flex.packageflexsdk.resource.RuntimeLocale;
 			import org.apache.flex.packageflexsdk.resource.ViewResourceConstants;
-			import org.apache.flex.packageflexsdk.view.components.AdobeLicense;
 			import org.apache.flex.packageflexsdk.view.components.ConsoleWindow;
-			import org.apache.flex.packageflexsdk.view.components.MPLLicense;
 			import org.as3commons.zip.Zip;
 			import org.as3commons.zip.ZipEvent;
 			import org.as3commons.zip.ZipFile;
 			
+			import runtimeResources.RuntimeLocale;
+			
 			import spark.components.Window;
-			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			import spark.events.TextOperationEvent;
 			
@@ -97,37 +93,12 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			 */
 			private var ADOBE_FB_GLOBALPLAYER_SWC_FILE:String;
 			private var ADOBE_FB_GLOBALPLAYER_SWC_URL:String;
-
-			
-			/**
-			 * Optional installs 
-			 * 
-			 */
-			private var OSMF_FILE:String;
-			private var OSMF_URL:String;
-			
-			private var TLF_FILE:String;
-			private var TLF_URL:String;
-
-			private var BLAZEDS_FILE:String;
-			private var BLAZEDS_URL:String;
-
-			private var AFE_FILE:String;
-			private var AFE_URL:String;
-			private var AGLJ40_FILE:String;
-			private var AGLJ40_URL:String;
-			private var FLEX_FONTKIT_FILE:String;
-			private var FLEX_FONTKIT_URL:String;
-			private var RIDEAU_FILE:String;
-			private var RIDEAU_URL:String;
-			
-/* 			private var ADOBE_FLEX_4_6_FILE:String;
-			private var ADOBE_FLEX_4_6_URL:String; */
 			
 			private const APP_NAME:String = "InstallApacheFlex";
 			private const WINDOWS_OS:String = "windows";
 			private const MAC_OS:String = "mac";
 			
+			private var _args:Array;
 			private var _flexHome:String;
 			private var _flexTemp:String;
 			private var _flexHomeDir:File;
@@ -136,31 +107,21 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private var _adobeAIRSDKZipFile:File;
 			private var _fbGlobalPlayerDir:File;
 			private var _fbGlobalPlayerFile:File;
-			private var _blazeDSJarFile:File;
-			private var _afeJarFile:File;
-			private var _aglj40JarFile:File;
-			private var _flexFontKitJarFile:File;
-			private var _rideauJarFile:File;
-			private var _osmfFile:File;
-			private var _tlfFile:File;
-			
 			private var _os:String;
 			private var _loader:URLLoader;	
 			private var _process:NativeProcess;
 			private var _previousDisplayedPercent:int = 0;
 			private var _runtimeLocale:RuntimeLocale = new RuntimeLocale();
 			private var _fileUnzipErrorFunction:Function;
-			private var _numOptionalComponents:int = 4;
-			private var _numOptionalComponentsPermissions:int = 0;
 			
 			[Bindable] private var _constants:ViewResourceConstants;
 			[Bindable] private var _installationSteps:ArrayCollection = new ArrayCollection();
-			[Bindable] private var _optionalInstallsDataProvider:ArrayCollection = new ArrayCollection();
 			[Bindable] public var _messages:ArrayCollection = new ArrayCollection();
 			
 			protected function applicationInvoked(event:InvokeEvent):void
 			{
 				centerWindow();
+				_args = event.arguments;
 				_constants = ViewResourceConstants.getInstance();
 				_runtimeLocale.enumerateBundles();
 				_langSelect.dataProvider = _runtimeLocale.supportedLanguage;
@@ -266,27 +227,6 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 				ADOBE_FB_GLOBALPLAYER_SWC_URL += ADOBE_FB_GLOBALPLAYER_SWC_FILE;
 				
-				OSMF_FILE = files.(@name == 'OSMF').@file.toString();
-				OSMF_URL = files.(@name == 'OSMF').@path.toString();
-				
-				TLF_FILE = files.(@name == 'TLF').@file.toString();
-				TLF_URL = files.(@name == 'TLF').@path.toString();
-
-				BLAZEDS_FILE = files.(@name == 'BlazeDS').@file.toString();
-				BLAZEDS_URL = files.(@name == 'BlazeDS').@path.toString();
-
-				AFE_FILE = files.(@name == 'afe').@file.toString();
-				AFE_URL = files.(@name == 'afe').@path.toString();
-				
-				AGLJ40_FILE = files.(@name == 'aglj40').@file.toString();
-				AGLJ40_URL = files.(@name == 'aglj40').@path.toString();
-				
-				FLEX_FONTKIT_FILE = files.(@name == 'flex-fontkit').@file.toString();
-				FLEX_FONTKIT_URL = files.(@name == 'flex-fontkit').@path.toString();
-				
-				RIDEAU_FILE = files.(@name == 'rideau').@file.toString();
-				RIDEAU_URL = files.(@name == 'rideau').@path.toString();
-				
 				return keepGoing;
 			}
 			
@@ -310,8 +250,21 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function main():void
 			{
+				var isValidCommandLineInvocaton:Boolean = validateArguments();
+				
+				if (isValidCommandLineInvocaton)
+				{
+					log(_constants.INFO_APP_INVOKED + _flexHome);
+					setCommandLineState();
+					flexSDKTxtInput.text = _flexHome;
+					install();
+				}
+				else
+				{
+					setGUIState();
+				}
+				
 				initiateInstallStepsActivity();
-				initializeOptionInstallsDataProvider();
 			}
 			
 			protected function handleInstallBtnClick(event:MouseEvent):void
@@ -322,18 +275,13 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 				else
 				{
+					browseBtn.enabled = false;
+					installBtn.enabled = false;
 					_langSelect.enabled = false;
 					_flexHome = flexSDKTxtInput.text;
 					resetInstallStepsActivity();
-					addOptionalComponentsToInstallSteps();
-					this.currentState = "installState";
 					install();
 				}
-			}
-			
-			protected function handleFirstStepNextBtnClick(event:MouseEvent):void
-			{
-				currentState = "optionsState";
 			}
 			
 			protected function initiateInstallStepsActivity():void
@@ -355,30 +303,11 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				}
 			}
 			
-			protected function addOptionalComponentsToInstallSteps():void
-			{
-				for each (var obj:Object in _optionalInstallsDataProvider)
-				{
-					if(obj.selected)
-					{
-						_installationSteps.addItem(new StepItem(obj.label));
-					}
-				}
-			}
-			
-			protected function initializeOptionInstallsDataProvider():void{
-				_optionalInstallsDataProvider.addItem({label:_constants.STEP_OPTIONAL_INSTALL_BLAZEDS,message:_constants.ASK_BLAZEDS,selected:null,installed:false,aborted:false});
-				_optionalInstallsDataProvider.addItem({label:_constants.STEP_OPTIONAL_INSTALL_FONTSWF,message:_constants.ASK_FONTSWF,selected:null,installed:false,aborted:false});
-				_optionalInstallsDataProvider.addItem({label:_constants.STEP_OPTIONAL_INSTALL_TLF,message:_constants.ASK_TLF,selected:null,installed:false,aborted:false});
-				_optionalInstallsDataProvider.addItem({label:_constants.STEP_OPTIONAL_INSTALL_OSMF,message:_constants.ASK_OSMF,selected:null,installed:false,aborted:false});
-			}
-			
 			protected function install():void
 			{
 				createDirectories();
 			}
 			
-
 			protected function setCommandLineState():void
 			{
 				currentState = "commandLineState";
@@ -387,6 +316,33 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function setGUIState():void
 			{
 				currentState = "guiState";
+			}
+			
+			/**
+			 * If there is no argument, this is a GUI mode invocation
+			 * If there are multiple arguments, its most probably a directory path with spaces.  Concatenate all of them with spaces in between
+			 */
+			protected function validateArguments():Boolean
+			{
+				if (_args.length == 0)
+				{
+					log(APP_NAME +_constants.INFO_INVOKED_GUI_MODE);
+					return false;
+				}
+				
+				if (_args.length > 1)
+				{
+					_flexHome = _args.join(" "); 
+					return true;
+				}
+				
+				if (_args.length == 1)
+				{
+					_flexHome = _args[0];
+					return true;
+				}
+				
+				return false;
 			}
 			
 			// TODO Scan for Apache SDKs installed and check if allready modified?
@@ -402,13 +358,13 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				var flexPath:String =  File(event.target).nativePath;
 				
-				/* if (SDKNotPackaged(flexPath))
-				{ */
+				if (validApacheSDK(flexPath) && SDKNotPackaged(flexPath))
+				{
 					_flexHome = flexPath;
 					flexSDKTxtInput.text = flexPath;
-					nextBtn.enabled = true;
+					installBtn.enabled = true;
 					_langSelect.enabled = true;
-				//}
+				}
 			}
 			
 			protected function validApacheSDK(flexPath:String):Boolean
@@ -455,23 +411,23 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					tempDir = new File(path);
 					
-					if (SDKNotPackaged(path))
+					if (validApacheSDK(path) && SDKNotPackaged(path))
 					{
 						flexSDKTxtInput.errorString = "";
 						_flexHome = path;
-						nextBtn.enabled = true;
+						installBtn.enabled = true;
 						_langSelect.enabled = true;
 					}
 					else
 					{
 						flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
-						nextBtn.enabled = false;
+						installBtn.enabled = false;
 					}
 				}
 				catch (e:Error)
 				{
 					flexSDKTxtInput.errorString = _constants.ERROR_INVALID_FLEX_SDK_DIRECTORY;
-					nextBtn.enabled = false;
+					installBtn.enabled = false;
 				}
 			}
 			
@@ -503,7 +459,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				
 				try
 				{
-					log(_constants.INFO_DOWNLOADING_APACHE_FLEX_SDK + APACHE_FLEX_BIN_DISTRO_URL);
+					log(_constants.INFO_DOWNLOADING_FLEX_SDK + APACHE_FLEX_BIN_DISTRO_URL);
 					_apacheFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + APACHE_FLEX_BIN_DISTRO_FILE); 
 					copyOrDownload(APACHE_FLEX_BIN_DISTRO_URL, handleApacheFlexSDKDownload, _apacheFlexSDKZipFile, handleApacheFlexSDKDownloadError);
 				}
@@ -512,7 +468,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					updateActivityStep(_constants.STEP_DOWNLOAD_FLEX_SDK, StepItem.ERROR);
 					abortInstallation();
 				}
-				
+					
 			}
 			
 			protected function handleApacheFlexSDKDownload(event:Event):void
@@ -521,7 +477,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					var fs:FileStream = new FileStream(); 
 					fs.open(_apacheFlexSDKZipFile, FileMode.WRITE); 
-					fs.writeBytes(event.target.data);
+					fs.writeBytes(event.target.data); 
 					fs.close();
 				}
 				catch (e:Error)
@@ -542,6 +498,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function unzipApacheFlexSDK():void
 			{
+				trace("unzipping flex sdk");
 				updateActivityStep(_constants.STEP_UNZIP_FLEX_SDK, StepItem.ACTIVE);
 				
 				try
@@ -772,392 +729,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				if (!aborted)
 				{
 					updateActivityStep(_constants.STEP_INSTALL_CONFIG_FILES, StepItem.COMPLETE);
-					//cleanup();
-					installNextOptionalComponent();
-				}
-			}
-			
-			protected function installNextOptionalComponent():void
-			{
-				for each (var obj:Object in _optionalInstallsDataProvider)
-				{
-					if(obj.selected && !obj.installed && !obj.aborted)
-					{
-						switch(obj.label)
-						{
-							case _constants.STEP_OPTIONAL_INSTALL_BLAZEDS:
-							{
-								installBlazeDS();
-								return;
-								break;
-							}
-							 case _constants.STEP_OPTIONAL_INSTALL_FONTSWF:
-							{
-								installFontSwf();
-								return;
-								break;
-							}
-							case _constants.STEP_OPTIONAL_INSTALL_OSMF:
-							{
-								installOSMF();
-								return;
-								break;
-							}
-							case _constants.STEP_OPTIONAL_INSTALL_TLF:
-							{
-								installTLF();
-								return;
-								break;
-							} 
-							default:
-							{
-								break;
-							}
-						}
-					}
-				}
-				checkAndHandleAllOptionalComponentsInstalled();
-			}
-			
-			protected function installBlazeDS():void
-			{
-				updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS, StepItem.ACTIVE);
-				log(StringUtil.substitute(_constants.INFO_DOWNLOADING_FILE_FROM,[BLAZEDS_FILE,BLAZEDS_URL]));
-				_blazeDSJarFile = File.userDirectory.resolvePath(_flexTemp + File.separator + BLAZEDS_FILE);
-				copyOrDownload(BLAZEDS_URL+BLAZEDS_FILE,handleBlazeDSDownloadComplete,null,handleBlazeDSInstallError);
-			}
-			
-			protected function handleBlazeDSDownloadComplete(event:Event):void
-			{
-				try
-				{
-					var fs:FileStream = new FileStream(); 
-					fs.open(_blazeDSJarFile, FileMode.WRITE); 
-					fs.writeBytes(event.target.data); 
-					fs.close();
-
-					copyFileToOptionalLibDir(_blazeDSJarFile);
-					updateOptionalComponentInstallStatus(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS,true);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS,false);
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS, StepItem.COMPLETE);
-					clearData(URLLoader(event.target));
-					installNextOptionalComponent();
-				}
-				catch (e:Error)
-				{
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS, StepItem.ERROR);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS,true);
-					installNextOptionalComponent();
-				}
-			}
-			
-			protected function installFontSwf():void
-			{
-				updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,StepItem.ACTIVE);
-				downloadFontSwfAFEFile();
-			}
-			
-			protected function downloadFontSwfAFEFile():void
-			{
-				log(StringUtil.substitute(_constants.INFO_DOWNLOADING_FILE_FROM,[AFE_FILE,AFE_URL]));
-				_afeJarFile = File.userDirectory.resolvePath(_flexTemp + File.separator + AFE_FILE);
-				copyOrDownload(AFE_URL+AFE_FILE,handleFontSWFAFEFileDownloaded,null,handleFontSWFInstallError);
-			}
-			
-			protected function handleFontSWFAFEFileDownloaded(event:Event):void
-			{
-				try
-				{
-					var fs:FileStream = new FileStream(); 
-					fs.open(_afeJarFile, FileMode.WRITE); 
-					fs.writeBytes(event.target.data); 
-					fs.close();
-					
-					copyFileToOptionalLibDir(_afeJarFile);
-					clearData(URLLoader(event.target));
-					
-					downloadFontSwfAGLFile();
-					
-				}
-				catch (e:Error)
-				{
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_FONTSWF, StepItem.ERROR);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,true);
-					installNextOptionalComponent();
-				}
-			}
-			
-			protected function downloadFontSwfAGLFile():void
-			{
-				log(StringUtil.substitute(_constants.INFO_DOWNLOADING_FILE_FROM,[AGLJ40_FILE,AGLJ40_URL]));
-				_aglj40JarFile = File.userDirectory.resolvePath(_flexTemp + File.separator + AGLJ40_FILE);
-				copyOrDownload(AGLJ40_URL+AGLJ40_FILE,handleFontSWFAGLFileDownloaded,null,handleFontSWFInstallError);
-			}
-			
-			protected function handleFontSWFAGLFileDownloaded(event:Event):void
-			{
-				try
-				{
-					var fs:FileStream = new FileStream(); 
-					fs.open(_aglj40JarFile, FileMode.WRITE); 
-					fs.writeBytes(event.target.data); 
-					fs.close();
-					
-					copyFileToOptionalLibDir(_aglj40JarFile);
-					clearData(URLLoader(event.target));
-					
-					downloadFontSwfFlexFontKitFile();
-				}
-				catch (e:Error)
-				{
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_FONTSWF, StepItem.ERROR);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,true);
-					installNextOptionalComponent();
-				}
-			}
-			
-			protected function downloadFontSwfFlexFontKitFile():void
-			{
-				log(StringUtil.substitute(_constants.INFO_DOWNLOADING_FILE_FROM,[FLEX_FONTKIT_FILE,FLEX_FONTKIT_URL]));
-				_flexFontKitJarFile = File.userDirectory.resolvePath(_flexTemp + File.separator + FLEX_FONTKIT_FILE);
-				copyOrDownload(FLEX_FONTKIT_URL+FLEX_FONTKIT_FILE,handleFontSWFFlexFontKitFileDownloaded,null,handleFontSWFInstallError);
-			}
-			
-			protected function handleFontSWFFlexFontKitFileDownloaded(event:Event):void
-			{
-				try
-				{
-					var fs:FileStream = new FileStream(); 
-					fs.open(_flexFontKitJarFile, FileMode.WRITE); 
-					fs.writeBytes(event.target.data); 
-					fs.close();
-					
-					copyFileToOptionalLibDir(_flexFontKitJarFile);
-					clearData(URLLoader(event.target));
-					
-					downloadFontSwfRideauKitFile();
-				}
-				catch (e:Error)
-				{
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_FONTSWF, StepItem.ERROR);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,true);
-					installNextOptionalComponent();
-				}
-			}
-			
-			protected function downloadFontSwfRideauKitFile():void
-			{
-				log(StringUtil.substitute(_constants.INFO_DOWNLOADING_FILE_FROM,[RIDEAU_FILE,RIDEAU_URL]));
-				_rideauJarFile = File.userDirectory.resolvePath(_flexTemp + File.separator + RIDEAU_FILE);
-				copyOrDownload(RIDEAU_URL+RIDEAU_FILE,handleFontSWFRideauFileDownloaded,null,handleFontSWFInstallError);
-			}
-			
-			protected function handleFontSWFRideauFileDownloaded(event:Event):void
-			{
-				try
-				{
-					var fs:FileStream = new FileStream(); 
-					fs.open(_rideauJarFile, FileMode.WRITE); 
-					fs.writeBytes(event.target.data); 
-					fs.close();
-					
-					copyFileToOptionalLibDir(_rideauJarFile);
-					clearData(URLLoader(event.target));
-					
-					updateOptionalComponentInstallStatus(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,true);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,false);
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_FONTSWF, StepItem.COMPLETE);
-					installNextOptionalComponent(); 
-				}
-				catch (e:Error)
-				{
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_FONTSWF, StepItem.ERROR);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,true);
-					installNextOptionalComponent();
-				}
-			}
-			
-			protected function installOSMF():void
-			{
-				updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_OSMF,StepItem.ACTIVE);
-				downloadOSMFFile();
-			}
-			
-			protected function downloadOSMFFile():void
-			{
-				log(StringUtil.substitute(_constants.INFO_DOWNLOADING_FILE_FROM,[OSMF_FILE,OSMF_URL]));
-				_osmfFile = File.userDirectory.resolvePath(_flexTemp + File.separator + OSMF_FILE);
-				copyOrDownload(OSMF_URL+OSMF_FILE,handleOSMFFileDownloaded,null,handleOSMFInstallError);
-			}
-			
-			protected function handleOSMFFileDownloaded(event:Event):void
-			{
-				try
-				{
-					var fs:FileStream = new FileStream(); 
-					fs.open(_osmfFile, FileMode.WRITE); 
-					fs.writeBytes(event.target.data); 
-					fs.close();
-					
-					copyFileToLibDir(_osmfFile);
-					clearData(URLLoader(event.target));
-					
-					updateOptionalComponentInstallStatus(_constants.STEP_OPTIONAL_INSTALL_OSMF,true);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_OSMF,false);
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_OSMF, StepItem.COMPLETE);
-					installNextOptionalComponent();
-				}
-				catch (e:Error)
-				{
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_OSMF, StepItem.ERROR);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_OSMF,true);
-					installNextOptionalComponent();
-				}
-			}
-			
-			protected function installTLF():void
-			{
-				updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_TLF,StepItem.ACTIVE);
-				downloadTLFFile();
-			}
-			
-			protected function downloadTLFFile():void
-			{
-				log(StringUtil.substitute(_constants.INFO_DOWNLOADING_FILE_FROM,[TLF_FILE,TLF_URL]));
-				_tlfFile = File.userDirectory.resolvePath(_flexTemp + File.separator + TLF_FILE);
-				copyOrDownload(TLF_URL+TLF_FILE,handleTLFFileDownloaded,null,handleTLFInstallError);
-			}
-			
-			protected function handleTLFFileDownloaded(event:Event):void
-			{
-				try
-				{
-					var fs:FileStream = new FileStream(); 
-					fs.open(_tlfFile, FileMode.WRITE); 
-					fs.writeBytes(event.target.data);
-					fs.close();
-					
-					copyFileToLibDir(_tlfFile);
-					clearData(URLLoader(event.target));
-					
-					updateOptionalComponentInstallStatus(_constants.STEP_OPTIONAL_INSTALL_TLF,true);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_TLF,false);
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_TLF, StepItem.COMPLETE);
-					installNextOptionalComponent();
-				}
-				catch (e:Error)
-				{
-					updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_TLF, StepItem.ERROR);
-					updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_TLF,true);
-					installNextOptionalComponent();
-				}
-			}
-			
-			protected function copyFileToOptionalLibDir(file:File):void
-			{
-				//Copy to "${FLEX_HOME}/lib/external/optional"
-				var copyToFile:File = _flexHomeDir.resolvePath("lib" + File.separator + "external" + File.separator + "optional" + File.separator + file.name);
-				file.copyTo(copyToFile,true);
-			}
-			
-			protected function copyFileToLibDir(file:File):void
-			{
-				//Copy to "${FLEX_HOME}/lib/external/optional"
-				var copyToFile:File = _flexHomeDir.resolvePath("frameworks" + File.separator + "libs" + File.separator + file.name);
-				file.copyTo(copyToFile,true);
-			}
-			
-/* 			protected function downloadAdobeFlexSDK(callAfterDownloadFunction:Function):void
-			{
-			try
-			{
-			_adobeFlexSDKZipFile = File.userDirectory.resolvePath(_flexTemp + File.separator + ADOBE_FLEX_4_6_FILE);
-			var errorHandler:Function = getErrorHandlerFromStep(_currentOptionalStep);
-			copyOrDownload(ADOBE_FLEX_4_6_URL + ADOBE_FLEX_4_6_FILE, callAfterDownloadFunction, _adobeFlexSDKZipFile, errorHandler);
-			}
-			catch (e:Error)
-			{
-			updateActivityStep(_currentOptionalStep.label, StepItem.ERROR);
-			installNextOptionalComponent();
-			}
-			} */
-			
-/* 			protected function getErrorHandlerFromStep(step:StepItem):Function
-			{
-				if(step.label == _constants.STEP_OPTIONAL_INSTALL_BLAZEDS)
-				{
-					return handleBlazeDSInstallError;
-				}
-				else if (step.label == _constants.STEP_OPTIONAL_INSTALL_FONTSWF)
-				{
-					return handleFontSWFInstallError;
-				}
-				return null;
-			} */
-			
-			protected function handleBlazeDSInstallError(event:*=null):void{
-				updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS, StepItem.ERROR);
-				updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS,true);
-				log(StringUtil.substitute(_constants.ERROR_UNABLE_TO_DOWNLOAD_FILE,["BlazeDS"]));
-				installNextOptionalComponent();
-			}
-
-			protected function handleFontSWFInstallError(event:*=null):void{
-				updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_FONTSWF, StepItem.ERROR);
-				updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,true);
-				log(StringUtil.substitute(_constants.ERROR_UNABLE_TO_DOWNLOAD_FILE,["FontSwf Utility"]));
-				installNextOptionalComponent();
-			}
-
-			protected function handleOSMFInstallError(event:*=null):void{
-				updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_OSMF, StepItem.ERROR);
-				updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_OSMF,true);
-				log(StringUtil.substitute(_constants.ERROR_UNABLE_TO_DOWNLOAD_FILE,["OSMF"]));
-				installNextOptionalComponent();
-			}
-
-			protected function handleTLFInstallError(event:*=null):void{
-				updateActivityStep(_constants.STEP_OPTIONAL_INSTALL_TLF, StepItem.ERROR);
-				updateOptionalComponentInstallStatusAborted(_constants.STEP_OPTIONAL_INSTALL_TLF,true);
-				log(StringUtil.substitute(_constants.ERROR_UNABLE_TO_DOWNLOAD_FILE,["TLF"]));
-				installNextOptionalComponent();
-			}
-			
-			protected function updateOptionalComponentInstallStatus(label:String,isInstalled:Boolean):void
-			{
-				for each (var obj:Object in _optionalInstallsDataProvider)
-				{
-					if(obj.label == label)
-					{
-						obj.installed = isInstalled;
-					}
-				}
-			}
-			
-			protected function updateOptionalComponentInstallStatusAborted(label:String,isAborted:Boolean):void
-			{
-				for each (var obj:Object in _optionalInstallsDataProvider)
-				{
-					if(obj.label == label)
-					{
-						obj.aborted = isAborted;
-					}
-				}
-			}
-			
-			protected function checkAndHandleAllOptionalComponentsInstalled():void
-			{
-				var allComponentsInstalled:Boolean = true;
-				for each (var obj:Object in _optionalInstallsDataProvider)
-				{
-					if(obj.selected && !(obj.installed || obj.aborted))
-					{
-						allComponentsInstalled = false;
-					}
-				}
-				if(allComponentsInstalled)
-				{
-					cleanup(false);	
+					cleanup();
 				}
 			}
 			
@@ -1222,70 +794,6 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					flexSDKTxtInput.prompt = _constants.SELECT_PATH_PROMPT;
 				}
-			}
-			
-			protected function placeFirstGroup():void
-			{
-				firstStepGroup.x = this.width/2 - firstStepGroup.width/2;
-			}
-			
-			protected function placeSecondGroup():void
-			{
-				secondStepGroup.x = this.width/2 - secondStepGroup.width/2;
-			}
-			
-			protected function placeThirdGroup():void
-			{
-				thirdStepGroup.x = this.width/2 - thirdStepGroup.width/2;
-			}
-			
-			protected function handleOptionalInstallsChange(event:IndexChangeEvent):void
-			{
-				installRdBtn.visible = true;
-				dontInstallRdBtn.visible = true;
-				var selectedItem:Object = event.target.selectedItem;
-				optionalInstallsTxtArea.text = selectedItem.message;
-				if(selectedItem.selected == true)
-				{
-					installPermissionRbtnGrp.selection = installRdBtn;
-				}
-				else if(selectedItem.selected == false)
-				{
-					installPermissionRbtnGrp.selection = dontInstallRdBtn;	
-				}
-				else
-				{
-					installPermissionRbtnGrp.selection = null;
-				}
-				if(selectedItem.message == _constants.ASK_OSMF || selectedItem.message == _constants.ASK_TLF)
-				{
-					mplLicenseBtn.includeInLayout = mplLicenseBtn.visible = true;
-					adobeLicenseBtn.includeInLayout = adobeLicenseBtn.visible = false;
-				}
-				if(selectedItem.message == _constants.ASK_BLAZEDS || selectedItem.message == _constants.ASK_FONTSWF)
-				{
-					mplLicenseBtn.includeInLayout = mplLicenseBtn.visible = false;
-					adobeLicenseBtn.includeInLayout = adobeLicenseBtn.visible = true;
-				}
-			}
-			
-			protected function handleInstallPermissionChange(event:Event):void
-			{
-				optionalComponentsList.selectedItem.selected = (event.target.selectedValue==_constants.INSTALL)?true:false;
-				checkIfAllOptionalComponentsPromptsAnswered();
-			}
-			
-			protected function checkIfAllOptionalComponentsPromptsAnswered():void
-			{
-				var success:Boolean = true;
-				for each (var obj:Object in _optionalInstallsDataProvider)
-				{
-					if(obj.selected == null)
-					{
-						success = false;
-					}
-				}
-				installBtn.enabled = success;
 			}
 			
 			/************************ Utility methods *****************/
@@ -1364,13 +872,6 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private function handleDownloadComplete(event:Event):void
 			{
 				_previousDisplayedPercent = 0;
-				clearData(URLLoader(event.target));
-			}
-			
-			private function clearData(v:URLLoader):void
-			{
-				ByteArray(v.data).clear();
-				System.gc();
 			}
 			
 			private function unzip(fileToUnzip:File, unzipCompleteFunction:Function, unzipErrorFunction:Function=null):void
@@ -1413,7 +914,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					fs.close();
 					
 				}
-				catch (error:Error)
+				catch (e:Error)
 				{
 					_fileUnzipErrorFunction.call();
 				}
@@ -1470,7 +971,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				_process.closeInput();
 				_process.exit(true);
 			}
-			
+
 			
 			private function isValidConfigFile(file:File):Boolean
 			{
@@ -1499,22 +1000,6 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				console.open();
 				console.nativeWindow.x = this.nativeWindow.x + this.nativeWindow.width/2 - console.nativeWindow.width/2;
 				console.nativeWindow.y = this.nativeWindow.y + this.nativeWindow.height/2 - console.nativeWindow.height/2;
-			}
-
-			private function showMPLLicense(event:Event):void 
-			{
-				var licenseWindow:MPLLicense = new MPLLicense();
-				licenseWindow.open();
-				licenseWindow.nativeWindow.x = this.nativeWindow.x + this.nativeWindow.width/2 - licenseWindow.nativeWindow.width/2;
-				licenseWindow.nativeWindow.y = this.nativeWindow.y + this.nativeWindow.height/2 - licenseWindow.nativeWindow.height/2;
-			}
-			
-			private function showAdobeLicense(event:Event):void 
-			{
-				var licenseWindow:AdobeLicense = new AdobeLicense();
-				licenseWindow.open();
-				licenseWindow.nativeWindow.x = this.nativeWindow.x + this.nativeWindow.width/2 - licenseWindow.nativeWindow.width/2;
-				licenseWindow.nativeWindow.y = this.nativeWindow.y + this.nativeWindow.height/2 - licenseWindow.nativeWindow.height/2;
 			}
 			
 			private function closeApplication(event:Event):void 
@@ -1555,132 +1040,45 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 		]]>
 	</fx:Script>
-	<fx:Declarations>
-		<s:Sine id="ease" />
-		<s:BlurFilter id="blur"/>
-		<s:RadioButtonGroup id="installPermissionRbtnGrp" change="handleInstallPermissionChange(event)" />
-	</fx:Declarations>
+	
 	<s:states>
-		<s:State name="default" />
-		<s:State name="optionsState" />
-		<s:State name="installState" />
+		<s:State name="guiState" id="guiState" />
+		<s:State name="commandLineState" id="commandLineState" />
 	</s:states>
-	<s:transitions>
-		<s:Transition id="showDefault" fromState="*" toState="default">
-			<s:Sequence id="t0" targets="{[firstStepGroup]}" effectEnd="placeFirstGroup()">
-				<s:SetAction target="{firstStepGroup}" property="visible" value="true"/>
-				<s:SetAction target="{secondStepGroup}" property="visible" value="false"/>
-				<s:SetAction target="{thirdStepGroup}" property="visible" value="false"/>
-				<s:Move target="{firstStepGroup}" xFrom="800" xTo="{this.width/2 - firstStepGroup.width/2}" duration="500" easer="{ease}" />
-				<!--<s:Parallel targets="{[firstStepGroup]}" >
-					<s:AnimateFilter target="{firstStepGroup}" bitmapFilter="{blur}" duration="200" repeatCount="2" repeatBehavior="reverse"> 
-						<s:SimpleMotionPath property="blurY" valueFrom="1" valueTo="20"/> 
-					</s:AnimateFilter>
-				</s:Parallel>-->
-			</s:Sequence>
-		</s:Transition>
-		<s:Transition id="showOptions" fromState="*" toState="optionsState">
-			<s:Sequence id="t1" targets="{[secondStepGroup]}" effectEnd="placeSecondGroup()">
-				<s:SetAction target="{firstStepGroup}" property="visible" value="false"/>
-				<s:SetAction target="{secondStepGroup}" property="visible" value="true"/>
-				<s:SetAction target="{thirdStepGroup}" property="visible" value="false"/>
-				<s:Move target="{secondStepGroup}" xFrom="800" xTo="{this.width/2 - secondStepGroup.width/2}" duration="500" easer="{ease}" />
-				<!--<s:Parallel targets="{[secondStepGroup]}" >
-					<s:AnimateFilter target="{secondStepGroup}" bitmapFilter="{blur}" duration="200" repeatCount="2" repeatBehavior="reverse"> 
-						<s:SimpleMotionPath property="blurY" valueFrom="1" valueTo="20"/> 
-					</s:AnimateFilter>
-				</s:Parallel>-->
-			</s:Sequence>
-		</s:Transition>
-		<s:Transition id="showInstall" fromState="*" toState="installState">
-			<s:Sequence id="t2" targets="{[thirdStepGroup]}" effectEnd="placeThirdGroup()">
-				<s:SetAction target="{firstStepGroup}" property="visible" value="false"/>
-				<s:SetAction target="{secondStepGroup}" property="visible" value="false"/>
-				<s:SetAction target="{thirdStepGroup}" property="visible" value="true"/>
-				<s:Move target="{thirdStepGroup}" xFrom="800" xTo="{this.width/2 - thirdStepGroup.width/2}" duration="500" easer="{ease}" />
-				<!--<s:Parallel targets="{[thirdStepGroup]}" >
-					<s:AnimateFilter target="{thirdStepGroup}" bitmapFilter="{blur}" duration="200" repeatCount="2" repeatBehavior="reverse"> 
-						<s:SimpleMotionPath property="blurY" valueFrom="1" valueTo="20"/> 
-					</s:AnimateFilter>
-				</s:Parallel>-->
-			</s:Sequence>
-		</s:Transition>
-	</s:transitions>
+	
 	<s:layout>
-		<s:BasicLayout />
+		<s:VerticalLayout gap="10" horizontalAlign="center" paddingTop="0" paddingBottom="20" />
 	</s:layout>
 	
-	<s:HGroup left="0" right="0" paddingLeft="20" paddingRight="20" paddingTop="5" horizontalAlign="right">
-<!--		<s:Button label="first" click="currentState = 'default'" />
-		<s:Button label="second" click="currentState = 'optionsState'" />
-		<s:Button label="third" click="currentState = 'installState'" />-->
+	<s:HGroup width="100%" paddingLeft="20" paddingRight="20" paddingTop="5">
 		<s:Spacer width="100%" />
-		<s:Label id="langLabel" horizontalCenter="0" 
-				 height="100%" textAlign="right"
-				 text="Current Language" verticalAlign="middle"/>
-		<s:ComboBox id="_langSelect" width="184" change="_langSelect_changeHandler(event)"/>
+		<s:Label id="langLabel" width="80%" horizontalCenter="0" text="Select Language"
+					height.guiState="100%" horizontalCenter.guiState="0" textAlign.guiState="right"
+					text.guiState="Current Language" verticalAlign.guiState="middle"/>
+		<s:ComboBox id="_langSelect" includeIn="guiState" width="184"
+							change="_langSelect_changeHandler(event)"/>
 	</s:HGroup>
-	<s:Panel id="firstStepGroup" title="Select installation directory" width="640" height="200" top="280" x="{firstStepGroup.x = this.width/2 - firstStepGroup.width/2}"
-			 visible="true" visible.optionsState="false" visible.installState="false"  
-			 backgroundAlpha="0" >
-		<s:layout>
-			<s:HorizontalLayout verticalAlign="middle" paddingRight="10" paddingLeft="10" />
-		</s:layout>
+	
+	<s:HGroup width="80%" enabled="false" enabled.guiState="true" paddingTop="300">
 		<s:TextInput id="flexSDKTxtInput" width="100%" prompt="{_constants.SELECT_PATH_PROMPT}"
 					 change="handleFlexSDXTxtInputChange(event)"/>
 		<s:Button id="browseBtn" styleName="browseBtnStyle" width="88" height="32"
 				  label="{_constants.BROWSE_BTN_LABEL}" click="browseForSDK(event)" toolTip="{_constants.INFO_SELECT_DIRECTORY}" />
-		<s:controlBarContent>
-			<s:Spacer width="100%" />
-			<s:Button id="nextBtn" styleName="mainBtnStyle" width="88" height="32" right="10"
-					  label="{ViewResourceConstants.getInstance().NEXT_BTN_LABEL}" enabled="false" click="handleFirstStepNextBtnClick(event)" />
-		</s:controlBarContent>
-	</s:Panel>
-	<s:Panel id="secondStepGroup" title="Select components" width="640" height="200" top="280" visible="false" visible.optionsState="true" 
-			 backgroundAlpha="0" >
-		<s:controlBarContent>
-			<s:Spacer width="100%" />
-			<s:Button id="installBtn" styleName="mainBtnStyle" width="88" height="32" right="10"
-					  label="{ViewResourceConstants.getInstance().INSTALL_BTN_LABEL}" enabled="false" click="handleInstallBtnClick(event)" />
-		</s:controlBarContent>
-		<s:layout>
-			<s:VerticalLayout verticalAlign="middle" paddingRight="10" paddingLeft="10" />
-		</s:layout>
-		<s:HGroup width="100%" height="100%" horizontalAlign="center">
-			<s:List id="optionalComponentsList" width="40%" height="100%"
-					itemRenderer="org.apache.flex.packageflexsdk.view.itemrenderers.OptionalInstallItemRenderer"
-					dataProvider="{_optionalInstallsDataProvider}" 
-					change="handleOptionalInstallsChange(event)">
-				<s:layout>
-					<s:VerticalLayout />
-				</s:layout>
-			</s:List>
-			<s:TextArea id="optionalInstallsTxtArea" fontSize="12" width="60%" height="100%" verticalScrollPolicy="off" />
-		</s:HGroup>
-		<s:HGroup width="100%" height="20" horizontalAlign="center" verticalAlign="middle">
-			<s:RadioButton id="installRdBtn" label="{_constants.INSTALL}" selected="false" group="{installPermissionRbtnGrp}" visible="false"/>
-			<s:RadioButton id="dontInstallRdBtn" label="{_constants.DONT_INSTALL}" selected="false" group="{installPermissionRbtnGrp}" visible="false"/>
-			<s:Button id="mplLicenseBtn" label="MPLLicense" styleName="genericBtnStyle" click="{showMPLLicense(event)}" includeInLayout="false" />
-			<s:Button id="adobeLicenseBtn" label="Adobe License" styleName="genericBtnStyle" click="{showAdobeLicense(event)}" includeInLayout="false" />
-		</s:HGroup>
-	</s:Panel>
+		<s:Button id="installBtn" styleName="installBtnStyle" width="88" height="32"
+				  label="{_constants.INSTALL_BTN_LABEL}" enabled="false" click="handleInstallBtnClick(event)" />
+	</s:HGroup>
 	
-	<s:Panel id="thirdStepGroup" title="Installing..."  width="640" height="200" top="280" visible="false" visible.installState="true" 
-			 backgroundAlpha="0">
-		<s:layout>
-			<s:VerticalLayout horizontalAlign="center" paddingTop="10" paddingRight="10" paddingLeft="10" />
-		</s:layout>
-		<controls1:MultiStepProgressIndicator top="" steps="{_installationSteps}" />
-		<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" horizontalCenter="0" />
-		<controls:ProgressBar id="progressBar" width="60%" height="21" />
-		<s:Spacer height="100%" />
-	</s:Panel>
-	<s:HGroup left="0" right="0" bottom="20" paddingLeft="20" paddingRight="20" paddingTop="0">
+	<controls1:MultiStepProgressIndicator steps="{_installationSteps}" />
+	<s:Label id="lastMessage" text="{_messages.getItemAt(_messages.length-1)}" width="80%" horizontalCenter="0" />
+	
+	<controls:ProgressBar id="progressBar" width="60%" height="21" />
+	<s:Spacer height="100%" />
+	
+	<s:HGroup width="100%" paddingLeft="20" paddingRight="20" paddingTop="0">
 		<s:Button id="installLogBtn" styleName="genericBtnStyle" width="110" height="32"
 				  label="{_constants.INSTALL_LOG_BTN_LABEL}" click="showConsole(event)" />
 		<s:Spacer width="100%" />
 		<s:Button id="closeBtn" styleName="genericBtnStyle" width="88" height="32" 
 				  label="{_constants.CLOSE_BTN_LABEL}" click="closeApplication(event)" />
 	</s:HGroup>
-	
 </s:WindowedApplication>

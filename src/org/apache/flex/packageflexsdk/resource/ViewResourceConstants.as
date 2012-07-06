@@ -9,13 +9,13 @@ package org.apache.flex.packageflexsdk.resource
 	public final class ViewResourceConstants
 	{
 		private static var _instance:ViewResourceConstants;
+		
 		//Labels
 		private var _INSTALL_BTN_LABEL:String;
 		private var _SELECT_PATH_PROMPT:String;
 		private var _BROWSE_BTN_LABEL:String;
 		private var _INSTALL_LOG_BTN_LABEL:String;
 		private var _CLOSE_BTN_LABEL:String;
-		private var _NEXT_BTN_LABEL:String;
 
 		//Log messages
 		private var _ERROR_CONFIG_XML_LOAD:String;
@@ -30,7 +30,7 @@ package org.apache.flex.packageflexsdk.resource
 		private var _INFO_SELECT_DIRECTORY:String;
 		private var _INFO_CREATING_FLEX_HOME:String;
 		private var _INFO_CREATING_TEMP_DIR:String;
-		private var _INFO_DOWNLOADING_APACHE_FLEX_SDK:String;
+		private var _INFO_DOWNLOADING_FLEX_SDK:String;
 		private var _INFO_UNZIPPING:String;
 		private var _INFO_FINISHED_UNZIPPING:String;
 		private var _INFO_DOWLOADING_AIR_RUNTIME_KIT_WINDOWS:String;
@@ -51,10 +51,6 @@ package org.apache.flex.packageflexsdk.resource
 		private var _ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY:String;
 		private var _ERROR_INVALID_FLEX_SDK_DIRECTORY:String;
 		private var _ERROR_UNABLE_TO_INSTALL_CONFIG_FILES:String;
-		private var _INFO_DOWNLOADING_ADOBE_FLEX_SDK:String;
-		private var _ERROR_UNABLE_TO_DOWNLOAD_FILE:String;
-		private var _ERROR_UNABLE_TO_UNZIP:String;
-		private var _INFO_DOWNLOADING_FILE_FROM:String;
 		
 		//URLs
 		private var _APACHE_FLEX_URL:String;
@@ -68,19 +64,6 @@ package org.apache.flex.packageflexsdk.resource
 		private var _STEP_UNZIP_AIR_RUNTIME_KIT:String;
 		private var _STEP_DOWNLOAD_FLASHPLAYER_SWC:String;
 		private var _STEP_INSTALL_CONFIG_FILES:String;
-		private var _STEP_OPTIONAL_INSTALL_FONTSWF:String;
-		private var _STEP_OPTIONAL_INSTALL_BLAZEDS:String;
-		private var _STEP_OPTIONAL_INSTALL_TLF:String;
-		private var _STEP_OPTIONAL_INSTALL_OSMF:String;
-		
-		//PROMPTS
-		private var _ASK_OSMF:String;
-		private var _ASK_BLAZEDS:String;
-		private var _ASK_TLF:String;
-		private var _ASK_FONTSWF:String;
-		private var _INSTALL:String;
-		private var _DONT_INSTALL:String;
-		
 		
 		private var _iResourceManager:IResourceManager;
 		
@@ -118,7 +101,6 @@ package org.apache.flex.packageflexsdk.resource
 			_BROWSE_BTN_LABEL = _iResourceManager.getString("messagestrings","browse_btn_label");
 			_INSTALL_LOG_BTN_LABEL = _iResourceManager.getString("messagestrings","install_log_btn_label");
 			_CLOSE_BTN_LABEL = _iResourceManager.getString("messagestrings","close_btn_label");
-			_NEXT_BTN_LABEL = ResourceManager.getInstance().getString("messagestrings","next_btn_label");
 			
 			_APACHE_FLEX_URL = _iResourceManager.getString("messagestrings","apache_flex_url");
 			_CONFIG_URL = _iResourceManager.getString("messagestrings","config_url");
@@ -135,7 +117,7 @@ package org.apache.flex.packageflexsdk.resource
 			_INFO_SELECT_DIRECTORY = _iResourceManager.getString("messagestrings","info_select_directory");
 			_INFO_CREATING_FLEX_HOME = _iResourceManager.getString("messagestrings","info_creating_flex_home");
 			_INFO_CREATING_TEMP_DIR = _iResourceManager.getString("messagestrings","info_creating_temp_dir");
-			_INFO_DOWNLOADING_APACHE_FLEX_SDK = _iResourceManager.getString("messagestrings","info_dowloading_flex_sdk");
+			_INFO_DOWNLOADING_FLEX_SDK = _iResourceManager.getString("messagestrings","info_dowloading_flex_sdk");
 			_INFO_UNZIPPING = _iResourceManager.getString("messagestrings","info_unzipping");
 			_INFO_FINISHED_UNZIPPING = _iResourceManager.getString("messagestrings","info_unzipping");
 			_INFO_DOWLOADING_AIR_RUNTIME_KIT_WINDOWS = _iResourceManager.getString("messagestrings","info_dowloading_air_runtime_kit_windows");
@@ -156,9 +138,6 @@ package org.apache.flex.packageflexsdk.resource
 			_ERROR_UNABLE_TO_CREATE_TEMP_DIRECTORY = _iResourceManager.getString("messagestrings","error_unable_to_create_temp_directory");
 			_ERROR_INVALID_FLEX_SDK_DIRECTORY = _iResourceManager.getString("messagestrings","error_invalid_flex_sdk_directory");
 			_ERROR_UNABLE_TO_INSTALL_CONFIG_FILES = _iResourceManager.getString("messagestrings","error_unable_to_install_config_files");
-			_INFO_DOWNLOADING_FILE_FROM = _iResourceManager.getString("messagestrings","info_dowloading_file_from");
-			_ERROR_UNABLE_TO_DOWNLOAD_FILE = _iResourceManager.getString("messagestrings","error_unable_to_download_file");
-			_ERROR_UNABLE_TO_UNZIP = _iResourceManager.getString("messagestrings","error_unable_to_unzip");
 			
 			_STEP_CREATE_DIRECTORIES = _iResourceManager.getString("messagestrings","step_create_directories");
 			_STEP_DOWNLOAD_FLEX_SDK = _iResourceManager.getString("messagestrings","step_download_flex_sdk");
@@ -167,18 +146,6 @@ package org.apache.flex.packageflexsdk.resource
 			_STEP_UNZIP_AIR_RUNTIME_KIT = _iResourceManager.getString("messagestrings","step_unzip_air_runtime_kit");
 			_STEP_DOWNLOAD_FLASHPLAYER_SWC = _iResourceManager.getString("messagestrings","step_download_flashplayer_swc");
 			_STEP_INSTALL_CONFIG_FILES = _iResourceManager.getString("messagestrings","step_install_config_files");
-			_STEP_OPTIONAL_INSTALL_FONTSWF = _iResourceManager.getString("messagestrings","step_optional_install_FontSwf");
-			_STEP_OPTIONAL_INSTALL_BLAZEDS = _iResourceManager.getString("messagestrings","step_optional_install_BlazeDS");
-			_STEP_OPTIONAL_INSTALL_TLF = _iResourceManager.getString("messagestrings","step_optional_install_TLF");
-			_STEP_OPTIONAL_INSTALL_OSMF = _iResourceManager.getString("messagestrings","step_optional_install_OSMF");
-			
-			_ASK_BLAZEDS = _iResourceManager.getString("messagestrings","ask_blazeds");
-			_ASK_FONTSWF = _iResourceManager.getString("messagestrings","ask_fontswf");
-			_ASK_OSMF = _iResourceManager.getString("messagestrings","ask_osmf");
-			_ASK_TLF = _iResourceManager.getString("messagestrings","ask_tlf");
-			_INSTALL = _iResourceManager.getString("messagestrings","install");
-			_DONT_INSTALL = _iResourceManager.getString("messagestrings","dont_install");
-			
 		}
 		
 		public function get INFO_DOWNLOADED():String
@@ -241,9 +208,9 @@ package org.apache.flex.packageflexsdk.resource
 			return _INFO_UNZIPPING;
 		}
 
-		public function get INFO_DOWNLOADING_APACHE_FLEX_SDK():String
+		public function get INFO_DOWNLOADING_FLEX_SDK():String
 		{
-			return _INFO_DOWNLOADING_APACHE_FLEX_SDK;
+			return _INFO_DOWNLOADING_FLEX_SDK;
 		}
 
 		public function get INFO_CREATING_TEMP_DIR():String
@@ -414,84 +381,7 @@ package org.apache.flex.packageflexsdk.resource
 		public function get ERROR_UNABLE_TO_INSTALL_CONFIG_FILES():String
 		{
 			return _ERROR_UNABLE_TO_INSTALL_CONFIG_FILES;
-		}
-
-		public function get NEXT_BTN_LABEL():String
-		{
-			return _NEXT_BTN_LABEL;
-		}
-
-		public function get ASK_OSMF():String
-		{
-			return _ASK_OSMF;
-		}
-
-		public function get ASK_BLAZEDS():String
-		{
-			return _ASK_BLAZEDS;
-		}
-
-		public function get ASK_TLF():String
-		{
-			return _ASK_TLF;
-		}
-
-		public function get ASK_FONTSWF():String
-		{
-			return _ASK_FONTSWF;
-		}
-
-		public function get INSTALL():String
-		{
-			return _INSTALL;
-		}
-
-		public function get DONT_INSTALL():String
-		{
-			return _DONT_INSTALL;
-		}
-
-		public function get STEP_OPTIONAL_INSTALL_FONTSWF():String
-		{
-			return _STEP_OPTIONAL_INSTALL_FONTSWF;
-		}
-
-		public function get STEP_OPTIONAL_INSTALL_BLAZEDS():String
-		{
-			return _STEP_OPTIONAL_INSTALL_BLAZEDS;
-		}
-
-		public function get STEP_OPTIONAL_INSTALL_TLF():String
-		{
-			return _STEP_OPTIONAL_INSTALL_TLF;
-		}
-
-		public function get STEP_OPTIONAL_INSTALL_OSMF():String
-		{
-			return _STEP_OPTIONAL_INSTALL_OSMF;
-		}
-
-		public function get INFO_DOWNLOADING_ADOBE_FLEX_SDK():String
-		{
-			return _INFO_DOWNLOADING_ADOBE_FLEX_SDK;
-		}
-
-		public function get ERROR_UNABLE_TO_DOWNLOAD_FILE():String
-		{
-			return _ERROR_UNABLE_TO_DOWNLOAD_FILE;
-		}
-
-		public function get ERROR_UNABLE_TO_UNZIP():String
-		{
-			return _ERROR_UNABLE_TO_UNZIP;
-		}
-
-		public function get INFO_DOWNLOADING_FILE_FROM():String
-		{
-			return _INFO_DOWNLOADING_FILE_FROM;
-		}
-
-	
+		}	
 	}
 }
 
