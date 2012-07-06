@@ -29,14 +29,23 @@ limitations under the License.
 		<!-- Adobe Flash Player player global swc -->
 		<file name="FlashPlayer" path="http://fpdownload.macromedia.com/get/flashplayer/updaters/11/" file="playerglobal11_1.swc" />	
 		
+		<!-- BlazeDS -->
+		<file name="BlazeDS" path="http://opensource.adobe.com/svn/opensource/flex/sdk/branches/4.y/lib/" file="flex-messaging-common.jar" />	
+		
+		<!-- FontSWF -->
+		<file name="afe" path="http://opensource.adobe.com/svn/opensource/flex/sdk/branches/4.y/lib/" file="afe.jar" />
+		<file name="aglj40" path="http://opensource.adobe.com/svn/opensource/flex/sdk/branches/4.y/lib/" file="aglj40.jar" />
+		<file name="flex-fontkit" path="http://opensource.adobe.com/svn/opensource/flex/sdk/branches/4.y/lib/" file="flex-fontkit.jar" />
+		<file name="rideau" path="http://opensource.adobe.com/svn/opensource/flex/sdk/branches/4.y/lib/" file="rideau.jar" />
+			
 		<!-- OSMF -->
-		<file name="OSMFSource" path="http://sourceforge.net/projects/osmf.adobe/files/OSMF%201.0%20%28final%20source%2C%20ASDocs%2C%20PDF%20guides%2C%20and%20release%20notes%29/OSMF_1.0.zip/download" file="OSMF_1.0.zip" />	
+		<file name="OSMF" path="http://opensource.adobe.com/svn/opensource/flex/sdk/branches/4.y/frameworks/libs/" file="osmf.swc" />	
 		
 		<!-- TLF -->
-		<file name="TLF" path="http://sourceforge.net/projects/tlf.adobe/files/2.0/232/textLayout_build.zip/download" file="textLayout_build.zip" />	
+		<file name="TLF" path="http://sourceforge.net/projects/tlf.adobe/files/2.0/232/textLayout_build.zip/download" file="textLayout.swc" />	
 
 		<!-- AdobeFlex4.6 -->
-		<file name="FontsBlazeDSJars" path="http://fpdownload.adobe.com/pub/flex/sdk/builds/flex4.6/" file="flex_sdk_4.6.0.23201B.zip" />	
+<!-- 		<file name="AdobeFlex4.6" path="http://fpdownload.adobe.com/pub/flex/sdk/builds/flex4.6/" file="flex_sdk_4.6.0.23201B.zip" />	 -->
 		
 	</files>
 </config>

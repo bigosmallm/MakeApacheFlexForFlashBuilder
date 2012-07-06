@@ -112,6 +112,8 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["info_installation_complete"]="Installation complete.";
 			_resource.content["info_finished_unzipping"]="Finished uncompressing: ";
 			_resource.content["info_dowloading_flex_sdk"]="Downloading Apache Flex SDK from: ";
+			_resource.content["info_dowloading_adobe_flex_sdk"]="Downloading Adobe Flex SDK from: ";
+			_resource.content["info_dowloading_file_from"]="Downloading {0} from: {1}";
 			
 			_resource.content["error_unable_to_copy_file"]="Unable to copy file ";
 			_resource.content["error_config_xml_load"]="Error while trying to load XML configuration file: ";
@@ -130,10 +132,13 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["error_unable_to_create_temp_directory"]="Unable to create temporary directory";
 			_resource.content["error_invalid_flex_sdk_directory"]="Invalid Flex SDK directory selected";
 			_resource.content["error_unable_to_install_config_files"]="Unable to install configuration files";
+			_resource.content["error_unable_to_download_file"]="Unable to download {0}";
+			_resource.content["error_unable_to_unzip"]="Unable to unzip file: ";
 			
 			
 			_resource.content["config_url"]="ApacheFlexConfig.xml";
 			_resource.content["apache_flex_url"]="http://incubator.apache.org/flex/";
+			_resource.content["adobe_flex_sdk_license_url"]="http://www.adobe.com/products/eulas/pdfs/adobe_flex_software_development_kit-combined-20110916_0930.pdf"
 
 			_resource.content["step_download_air_runtime_kit"]="Download Adobe AIR Runtime Kit";
 			_resource.content["step_unzip_air_runtime_kit"]="Uncompress Adobe AIR Runtime Kit";
@@ -142,11 +147,17 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["step_download_flex_sdk"]="Download Apache Flex SDK";
 			_resource.content["step_install_config_files"]="Install Framework Configuration Files";
 			_resource.content["step_create_directories"]="Create Directories";
+			_resource.content["step_optional_install_FontSwf"]="Adobe Fontswf Utility";
+			_resource.content["step_optional_install_BlazeDS"]="BlazeDS";
+			_resource.content["step_optional_install_TLF"]="Adobe Text Layout Framework (TLF)";
+			_resource.content["step_optional_install_OSMF"]="OSMF";
 			
 			//Optional install prompts
+			_resource.content["install"] = "Agree, install"
+			_resource.content["dont_install"] = "Dont agree"
 			_resource.content["ask_osmf"]="The Open Source Media Framework (OSMF) used by the video components is licensed under the Mozilla Public License Version 1.1.";
 			_resource.content["ask_tlf"]="The Adobe Text Layout Framework (TLF) used by the Spark text components is licensed under the Mozilla Public License Version 1.1.";
-			_resource.content["ask_font"]="Apache Flex can optionally integrate with Adobe's embedded font support.  " +
+			_resource.content["ask_fontswf"]="Apache Flex can optionally integrate with Adobe's embedded font support.  " +
 											"This feature requires a few font jars from the Adobe Flex SDK.  " +
 											"The Adobe SDK license agreement for Adobe Flex 4.6 applies to these jars.  " +
 											"This license is not compatible with the Apache v2 license.  " +
