@@ -136,7 +136,7 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["error_unable_to_unzip"]="Unable to unzip file: ";
 			
 			
-			_resource.content["config_url"]="ApacheFlexConfig.xml";
+			_resource.content["config_url"]="http://people.apache.org/~bigosmallm/installapacheflex/ApacheFlexConfig.xml";
 			_resource.content["apache_flex_url"]="http://incubator.apache.org/flex/";
 			_resource.content["adobe_flex_sdk_license_url"]="http://www.adobe.com/products/eulas/pdfs/adobe_flex_software_development_kit-combined-20110916_0930.pdf"
 

@@ -38,7 +38,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					   width="800" height="600" maxWidth="800" maxHeight="550" minWidth="800" minHeight="550"
 					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
 					   invoke="applicationInvoked(event)" showStatusBar="false"
-					   skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" xmlns:skins="org.apache.flex.packageflexsdk.view.skins.*" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*" xmlns:components="org.apache.flex.packageflexsdk.view.components.*">
+					   skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*" xmlns:components="org.apache.flex.packageflexsdk.view.components.*">
 	
 	<fx:Style source="assets/styles/styles.css" />
 	
