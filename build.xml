@@ -20,6 +20,9 @@
 
 <project name="MakeApacheFlexForFlashBuilder" basedir="." default="build">
 
+    <!--load environment variables prefixed with env -->
+    <property environment="env"/>
+	
     <!--location of property file -->
     <property file="${basedir}/build.properties" description="Properties for MakeApacheFlexForFlashBuilder project" />
 
