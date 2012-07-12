@@ -20,7 +20,7 @@ limitations under the License.
 	<version>1.0</version>
 	<files>
 		<!-- Apache Flex binary distribution -->
-		<file name="ApacheFlexSDK" path="http://people.apache.org/~cframpton/ApacheFlexRC/current/binaries/" file="apache-flex-sdk-4.8.0-incubating-bin.zip" />
+		<file name="ApacheFlexSDK" path="http://people.apache.org/~cframpton/ApacheFlexRC/release_candidate_3/binaries/" file="apache-flex-sdk-4.8.0-incubating-bin.zip" />
 		
 		<!-- Adobe AIR SDK -->
 		<file name="AdobeAIRSDKWin" path="http://airdownload.adobe.com/air/win/download/3.1/" file="AdobeAIRSDK.zip" />
@@ -42,7 +42,7 @@ limitations under the License.
 		<file name="OSMF" path="http://opensource.adobe.com/svn/opensource/flex/sdk/branches/4.y/frameworks/libs/" file="osmf.swc" />	
 		
 		<!-- TLF -->
-		<file name="TLF" path="http://sourceforge.net/projects/tlf.adobe/files/2.0/232/textLayout_build.zip/download" file="textLayout.swc" />	
+		<file name="TLF" path="http://opensource.adobe.com/svn/opensource/flex/sdk/branches/4.y/frameworks/libs/" file="textLayout.swc" />	
 
 		<!-- AdobeFlex4.6 -->
 <!-- 		<file name="AdobeFlex4.6" path="http://fpdownload.adobe.com/pub/flex/sdk/builds/flex4.6/" file="flex_sdk_4.6.0.23201B.zip" />	 -->
