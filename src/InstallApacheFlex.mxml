@@ -37,7 +37,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   width="800" height="600" maxWidth="800" maxHeight="550" minWidth="800" minHeight="550"
 					   backgroundColor="0xDDDDDD" title="Package Apache Flex SDK for use in an IDE"
-					   invoke="applicationInvoked(event)" showStatusBar="false"
+					   applicationComplete="handleApplicationComplete(event)" showStatusBar="false"
 					   skinClass="ws.tink.spark.skins.controls.InstallApacheFlexSkin" xmlns:controls="ws.tink.spark.controls.*" xmlns:controls1="org.apache.flex.packageflexsdk.view.controls.*" xmlns:components="org.apache.flex.packageflexsdk.view.components.*">
 	
 	<fx:Style source="assets/styles/styles.css" />
@@ -51,6 +51,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
 			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
 			import mx.utils.StringUtil;
 			
 			import org.apache.flex.packageflexsdk.model.OptionalComponentVO;
@@ -122,9 +123,6 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private var RIDEAU_FILE:String;
 			private var RIDEAU_URL:String;
 			
-			/* 			private var ADOBE_FLEX_4_6_FILE:String;
-			private var ADOBE_FLEX_4_6_URL:String; */
-			
 			private const APP_NAME:String = "InstallApacheFlex";
 			private const WINDOWS_OS:String = "windows";
 			private const MAC_OS:String = "mac";
@@ -159,7 +157,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			[Bindable] private var _optionalInstallsDataProvider:ArrayCollection = new ArrayCollection();
 			[Bindable] public var _messages:ArrayCollection = new ArrayCollection();
 			
-			protected function applicationInvoked(event:InvokeEvent):void
+			protected function handleApplicationComplete(event:FlexEvent):void
 			{
 				centerWindow();
 				_constants = ViewResourceConstants.getInstance();
@@ -203,6 +201,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				catch (error:Error)
 				{
 					log(_constants.ERROR_CONFIG_XML_LOAD + error.errorID + " " + error.message);
+					abortInstallation();
 				}
 				
 				_loader.addEventListener(IOErrorEvent.IO_ERROR, xmlError,false,0,true);
@@ -212,6 +211,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function xmlError(event:IOErrorEvent):void
 			{
 				log(_constants.ERROR_CONFIG_XML_LOAD + event.errorID);
+				abortInstallation();
 			}
 			
 			protected function xmlLoaded(event:Event):void
@@ -1168,6 +1168,8 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			}
 			
 			protected function abortInstallation():void{
+				browseBtn.enabled = false;
+				installBtn.enabled = false;
 				cleanup(true);
 				log(_constants.INFO_ABORT_INSTALLATION);
 			}
