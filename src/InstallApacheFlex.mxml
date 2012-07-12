@@ -1274,7 +1274,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				var success:Boolean = true;
 				for each (var obj:OptionalComponentVO in _optionalInstallsDataProvider)
 				{
-					if(obj.required && !obj.answered)
+					if(obj.required && !obj.selected)
 					{
 						success = false;
 					}
