@@ -6,7 +6,7 @@
 	<s:layout>
 		<s:HorizontalLayout verticalAlign="middle" gap="5" />
 	</s:layout>
-	<s:CheckBox selected="{data.selected}" enabled="false" />
+	<s:CheckBox selected="{data.selected}" enabled="false" skinClass="ws.tink.spark.skins.controls.ColorCheckBoxSkin" />
 	<s:Label text="{data.label}" fontSize="12"/>
 	
 </s:ItemRenderer>

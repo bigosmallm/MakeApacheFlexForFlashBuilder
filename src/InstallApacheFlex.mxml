@@ -53,6 +53,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			import mx.events.EffectEvent;
 			import mx.utils.StringUtil;
 			
+			import org.apache.flex.packageflexsdk.model.OptionalComponentVO;
 			import org.apache.flex.packageflexsdk.resource.RuntimeLocale;
 			import org.apache.flex.packageflexsdk.resource.ViewResourceConstants;
 			import org.apache.flex.packageflexsdk.view.components.AdobeLicense;
@@ -128,7 +129,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			private const WINDOWS_OS:String = "windows";
 			private const MAC_OS:String = "mac";
 			
-			private var _flexHome:String;
+			[Bindable]private var _flexHome:String;
 			private var _flexTemp:String;
 			private var _flexHomeDir:File;
 			private var _flexTempDir:File;
@@ -357,7 +358,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function addOptionalComponentsToInstallSteps():void
 			{
-				for each (var obj:Object in _optionalInstallsDataProvider)
+				for each (var obj:OptionalComponentVO in _optionalInstallsDataProvider)
 				{
 					if(obj.selected)
 					{
@@ -367,10 +368,10 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			}
 			
 			protected function initializeOptionInstallsDataProvider():void{
-				_optionalInstallsDataProvider.addItem({label:_constants.STEP_OPTIONAL_INSTALL_BLAZEDS,message:_constants.ASK_BLAZEDS,selected:null,installed:false,aborted:false});
-				_optionalInstallsDataProvider.addItem({label:_constants.STEP_OPTIONAL_INSTALL_FONTSWF,message:_constants.ASK_FONTSWF,selected:null,installed:false,aborted:false});
-				_optionalInstallsDataProvider.addItem({label:_constants.STEP_OPTIONAL_INSTALL_TLF,message:_constants.ASK_TLF,selected:null,installed:false,aborted:false});
-				_optionalInstallsDataProvider.addItem({label:_constants.STEP_OPTIONAL_INSTALL_OSMF,message:_constants.ASK_OSMF,selected:null,installed:false,aborted:false});
+				_optionalInstallsDataProvider.addItem(new OptionalComponentVO(_constants.STEP_OPTIONAL_INSTALL_TLF,_constants.ASK_TLF,true));
+				_optionalInstallsDataProvider.addItem(new OptionalComponentVO(_constants.STEP_OPTIONAL_INSTALL_OSMF,_constants.ASK_OSMF,true));
+				_optionalInstallsDataProvider.addItem(new OptionalComponentVO(_constants.STEP_OPTIONAL_INSTALL_FONTSWF,_constants.ASK_FONTSWF,false));
+				_optionalInstallsDataProvider.addItem(new OptionalComponentVO(_constants.STEP_OPTIONAL_INSTALL_BLAZEDS,_constants.ASK_BLAZEDS,false));
 			}
 			
 			protected function install():void
@@ -400,17 +401,21 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function flexSDKDirSelected(event:Event):void
 			{
-				var flexPath:String =  File(event.target).nativePath;
+				var selectedDir:File =  File(event.target);
 				
-				//Removed for testing
-				//TODO: Enable it and test before publishing
-				/* if (SDKNotPackaged(flexPath))
-				{ */
-				_flexHome = flexPath;
-				flexSDKTxtInput.text = flexPath;
-				nextBtn.enabled = true;
-				_langSelect.enabled = true;
-				//}
+				if(isDirectoryEmpty(selectedDir))
+				{
+					_flexHome = selectedDir.nativePath;
+					flexSDKTxtInput.text = _flexHome;
+					nextBtn.enabled = true;
+					_langSelect.enabled = true;
+					flexSDKTxtInput.errorString = "";
+				}
+				else
+				{
+					nextBtn.enabled = false;
+					flexSDKTxtInput.errorString = _constants.ERROR_DIRECTORY_NOT_EMPTY;
+				}
 			}
 			
 			protected function validApacheSDK(flexPath:String):Boolean
@@ -781,7 +786,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function installNextOptionalComponent():void
 			{
-				for each (var obj:Object in _optionalInstallsDataProvider)
+				for each (var obj:OptionalComponentVO in _optionalInstallsDataProvider)
 				{
 					if(obj.selected && !obj.installed && !obj.aborted)
 					{
@@ -1099,7 +1104,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function updateOptionalComponentInstallStatus(label:String,isInstalled:Boolean):void
 			{
-				for each (var obj:Object in _optionalInstallsDataProvider)
+				for each (var obj:OptionalComponentVO in _optionalInstallsDataProvider)
 				{
 					if(obj.label == label)
 					{
@@ -1110,7 +1115,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			
 			protected function updateOptionalComponentInstallStatusAborted(label:String,isAborted:Boolean):void
 			{
-				for each (var obj:Object in _optionalInstallsDataProvider)
+				for each (var obj:OptionalComponentVO in _optionalInstallsDataProvider)
 				{
 					if(obj.label == label)
 					{
@@ -1122,7 +1127,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function checkAndHandleAllOptionalComponentsInstalled():void
 			{
 				var allComponentsInstalled:Boolean = true;
-				for each (var obj:Object in _optionalInstallsDataProvider)
+				for each (var obj:OptionalComponentVO in _optionalInstallsDataProvider)
 				{
 					if(obj.selected && !(obj.installed || obj.aborted))
 					{
@@ -1149,8 +1154,17 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				if (!isAbort)
 				{
 					log(_constants.INFO_INSTALLATION_COMPLETE);
-					browseBtn.enabled = true;
+					updateUIHandleInstallationComplete();
 				}
+			}
+			
+			protected function updateUIHandleInstallationComplete():void
+			{
+				browseBtn.enabled = true;
+				openApacheFlexFolderBtn.visible = true;
+				openApacheFlexFolderBtn.includeInLayout = true;
+				progressBar.visible = false;
+				progressBar.includeInLayout = false;
 			}
 			
 			protected function abortInstallation():void{
@@ -1217,15 +1231,18 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				installRdBtn.visible = true;
 				dontInstallRdBtn.visible = true;
-				var selectedItem:Object = event.target.selectedItem;
+				var selectedItem:OptionalComponentVO = OptionalComponentVO(event.target.selectedItem);
 				optionalInstallsTxtArea.text = selectedItem.message;
-				if(selectedItem.selected == true)
+				if(selectedItem.answered)
 				{
-					installPermissionRbtnGrp.selection = installRdBtn;
-				}
-				else if(selectedItem.selected == false)
-				{
-					installPermissionRbtnGrp.selection = dontInstallRdBtn;	
+					if(selectedItem.selected)
+					{
+						installPermissionRbtnGrp.selection = installRdBtn;
+					}
+					else
+					{
+						installPermissionRbtnGrp.selection = dontInstallRdBtn;	
+					}
 				}
 				else
 				{
@@ -1246,15 +1263,16 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			protected function handleInstallPermissionChange(event:Event):void
 			{
 				optionalComponentsList.selectedItem.selected = (event.target.selectedValue==_constants.INSTALL)?true:false;
-				checkIfAllOptionalComponentsPromptsAnswered();
+				optionalComponentsList.selectedItem.answered = true;
+				checkIfAllRequiredComponentsPromptsAnswered();
 			}
 			
-			protected function checkIfAllOptionalComponentsPromptsAnswered():void
+			protected function checkIfAllRequiredComponentsPromptsAnswered():void
 			{
 				var success:Boolean = true;
-				for each (var obj:Object in _optionalInstallsDataProvider)
+				for each (var obj:OptionalComponentVO in _optionalInstallsDataProvider)
 				{
-					if(obj.selected == null)
+					if(obj.required && !obj.answered)
 					{
 						success = false;
 					}
@@ -1302,6 +1320,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			{
 				var loader:URLLoader = new URLLoader();
 				var req:URLRequest = new URLRequest(url);
+				req.idleTimeout = 60000;
 				
 				loader.dataFormat = URLLoaderDataFormat.BINARY; 
 				loader.addEventListener(Event.COMPLETE, handlerFunction,false,0,true);
@@ -1497,6 +1516,11 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				licenseWindow.nativeWindow.x = this.nativeWindow.x + this.nativeWindow.width/2 - licenseWindow.nativeWindow.width/2;
 				licenseWindow.nativeWindow.y = this.nativeWindow.y + this.nativeWindow.height/2 - licenseWindow.nativeWindow.height/2;
 			}
+
+			private function openApacheFlexFolder(event:Event):void 
+			{
+				_flexHomeDir.openWithDefaultApplication();
+			}
 			
 			private function closeApplication(event:Event):void 
 			{
@@ -1532,6 +1556,16 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 				{
 					step.status = status;
 				}
+			}
+			
+			private function isDirectoryEmpty(dir:File):Boolean
+			{
+				var files:Array = dir.getDirectoryListing();
+				if(files.length == 0)
+				{
+					return true;
+				}
+				return false;
 			}
 			
 		]]>
@@ -1635,7 +1669,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 		</s:controlBarContent>
 	</s:Panel>
 	<s:Panel id="secondStepGroup" 
-			 title="Select optional components"
+			 title="License Agreements"
 			 width="640" 
 			 height="200" 
 			 top="280" 
@@ -1665,7 +1699,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 			height="100%" 
 			horizontalAlign="center">
 			<s:List id="optionalComponentsList" 
-					width="40%" 
+					width="45%" 
 					height="100%"
 					itemRenderer="org.apache.flex.packageflexsdk.view.itemrenderers.OptionalInstallItemRenderer"
 					dataProvider="{_optionalInstallsDataProvider}" 
@@ -1674,9 +1708,9 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 					<s:VerticalLayout />
 				</s:layout>
 			</s:List>
-			<s:TextArea id="optionalInstallsTxtArea" 
+			<s:TextArea id="optionalInstallsTxtArea" text="{_constants.INFO_NEED_TO_READ_AND_AGREE_TO_LICENSE}"
 						fontSize="12" 
-						width="60%" 
+						width="55%" 
 						height="100%" 
 						verticalScrollPolicy="off" />
 		</s:HGroup>
@@ -1696,12 +1730,12 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 						   group="{installPermissionRbtnGrp}" 
 						   visible="false"/>
 			<s:Button id="mplLicenseBtn" 
-					  label="MPLLicense" 
+					  label="{_constants.MPL_LICENSE_BTN_LABEL}" 
 					  styleName="genericBtnStyle" 
 					  click="{showMPLLicense(event)}" 
 					  includeInLayout="false" />
 			<s:Button id="adobeLicenseBtn" 
-					  label="Adobe License" 
+					  label="{_constants.ADOBE_LICENSE_BTN_LABEL}" 
 					  styleName="genericBtnStyle" 
 					  click="{showAdobeLicense(event)}" 
 					  includeInLayout="false" />
@@ -1709,7 +1743,7 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 	</s:Panel>
 	
 	<s:Panel id="thirdStepGroup" 
-			 title="Installing..."  
+			 title="{_constants.INFO_INSTALLING}"  
 			 width="640" 
 			 height="200" 
 			 top="280" 
@@ -1728,12 +1762,22 @@ Command line usage: packageApacheFlexForIDE [sdk directory]
 		<controls1:MultiStepProgressIndicator 
 			steps="{_installationSteps}" />
 		<s:Label id="lastMessage" 
-				 text="{_messages.getItemAt(_messages.length-1)}" 
+				 text="{_messages.getItemAt(_messages.length-1)}"
+				 textAlign="center"
 				 width="80%" 
 				 horizontalCenter="0" />
 		<controls:ProgressBar id="progressBar" 
 							  width="60%" 
 							  height="21" />
+		<s:Button id="openApacheFlexFolderBtn"
+				  styleName="mainBtnStyle"
+				  width="225"
+				  height="32"
+				  visible="false"
+				  includeInLayout="false"
+				  label="{_constants.OPEN_APACHE_FLEX_FOLDER_BTN_LABEL}"
+				  toolTip="{_flexHome}"
+				  click="openApacheFlexFolder(event)" />
 	</s:Panel>
 	<s:HGroup 
 		left="0" 

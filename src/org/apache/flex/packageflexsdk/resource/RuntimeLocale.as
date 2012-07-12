@@ -95,6 +95,9 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["close_btn_label"]="CLOSE";
 			_resource.content["select_path_prompt"]="Where do you want to install the Apache Flex SDK?";
 			_resource.content["next_btn_label"]="NEXT";
+			_resource.content["show_mpl_license_btn_label"]="SHOW MPL LICENSE";
+			_resource.content["show_adobe_license_btn_label"]="SHOW ADOBE LICENSE";
+			_resource.content["open_apache_flex_folder_btn_label"]="OPEN APACHE FLEX FOLDER";
 
 			_resource.content["info_dowloading_air_runtime_kit_mac"]="Downloading Adobe AIR Runtime Kit for Mac from: ";
 			_resource.content["info_finished_untaring"]="Finished untaring: ";
@@ -114,6 +117,10 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["info_dowloading_flex_sdk"]="Downloading Apache Flex SDK from: ";
 			_resource.content["info_dowloading_adobe_flex_sdk"]="Downloading Adobe Flex SDK from: ";
 			_resource.content["info_dowloading_file_from"]="Downloading {0} from: {1}";
+			_resource.content["info_need_to_read_and_agree_to_license"]="These components have license agrements other than the Apache License.  " +
+																		"Please click on each item on the left, read the license and confirm that you agree " +
+																		"to the terms of each license.";
+			_resource.content["info_installing"]="Installing...";
 			
 			_resource.content["error_unable_to_copy_file"]="Unable to copy file ";
 			_resource.content["error_config_xml_load"]="Error while trying to load XML configuration file: ";
@@ -134,6 +141,7 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["error_unable_to_install_config_files"]="Unable to install configuration files";
 			_resource.content["error_unable_to_download_file"]="Unable to download {0}";
 			_resource.content["error_unable_to_unzip"]="Unable to unzip file: ";
+			_resource.content["error_dir_not_empty"]="The selected directory is not empty";
 			
 			
 			_resource.content["config_url"]="http://people.apache.org/~bigosmallm/installapacheflex/ApacheFlexConfig.xml";
@@ -147,14 +155,14 @@ package org.apache.flex.packageflexsdk.resource
 			_resource.content["step_download_flex_sdk"]="Download Apache Flex SDK";
 			_resource.content["step_install_config_files"]="Install Framework Configuration Files";
 			_resource.content["step_create_directories"]="Create Directories";
-			_resource.content["step_optional_install_FontSwf"]="Adobe Fontswf Utility";
-			_resource.content["step_optional_install_BlazeDS"]="BlazeDS";
-			_resource.content["step_optional_install_TLF"]="Adobe Text Layout Framework (TLF)";
-			_resource.content["step_optional_install_OSMF"]="OSMF";
+			_resource.content["step_optional_install_FontSwf"]="Adobe Fontswf Utility (Optional)";
+			_resource.content["step_optional_install_BlazeDS"]="BlazeDS (Optional)";
+			_resource.content["step_optional_install_TLF"]="Adobe Text Layout Framework (Required)";
+			_resource.content["step_optional_install_OSMF"]="OSMF (Required)";
 			
 			//Optional install prompts
-			_resource.content["install"] = "Agree, install"
-			_resource.content["dont_install"] = "Dont agree"
+			_resource.content["install"] = "I Agree, Install"
+			_resource.content["dont_install"] = "I Disagree, Don't Install"
 			_resource.content["ask_osmf"]="The Open Source Media Framework (OSMF) used by the video components is licensed under the Mozilla Public License Version 1.1.";
 			_resource.content["ask_tlf"]="The Adobe Text Layout Framework (TLF) used by the Spark text components is licensed under the Mozilla Public License Version 1.1.";
 			_resource.content["ask_fontswf"]="Apache Flex can optionally integrate with Adobe's embedded font support.  " +

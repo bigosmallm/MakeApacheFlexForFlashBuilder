@@ -21,7 +21,7 @@
 <project name="MakeApacheFlexForFlashBuilder" basedir="." default="build">
 
     <!--location of property file -->
-    <property file="${basedir}/build.properties" description="Properities for MakeApacheFlexForFlashBuilder project" />
+    <property file="${basedir}/build.properties" description="Properties for MakeApacheFlexForFlashBuilder project" />
 
     <!-- additional tasks - mxmlc tag -->
     <path id="flexTasks.path">

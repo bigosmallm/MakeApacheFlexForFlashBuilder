@@ -16,6 +16,9 @@ package org.apache.flex.packageflexsdk.resource
 		private var _INSTALL_LOG_BTN_LABEL:String;
 		private var _CLOSE_BTN_LABEL:String;
 		private var _NEXT_BTN_LABEL:String;
+		private var _MPL_LICENSE_BTN_LABEL:String;
+		private var _ADOBE_LICENSE_BTN_LABEL:String;
+		private var _OPEN_APACHE_FLEX_FOLDER_BTN_LABEL:String;
 
 		//Log messages
 		private var _ERROR_CONFIG_XML_LOAD:String;
@@ -55,6 +58,9 @@ package org.apache.flex.packageflexsdk.resource
 		private var _ERROR_UNABLE_TO_DOWNLOAD_FILE:String;
 		private var _ERROR_UNABLE_TO_UNZIP:String;
 		private var _INFO_DOWNLOADING_FILE_FROM:String;
+		private var _INFO_NEED_TO_READ_AND_AGREE_TO_LICENSE:String;
+		private var _INFO_INSTALLING:String;
+		private var _ERROR_DIRECTORY_NOT_EMPTY:String;
 		
 		//URLs
 		private var _APACHE_FLEX_URL:String;
@@ -119,6 +125,9 @@ package org.apache.flex.packageflexsdk.resource
 			_INSTALL_LOG_BTN_LABEL = _iResourceManager.getString("messagestrings","install_log_btn_label");
 			_CLOSE_BTN_LABEL = _iResourceManager.getString("messagestrings","close_btn_label");
 			_NEXT_BTN_LABEL = ResourceManager.getInstance().getString("messagestrings","next_btn_label");
+			_MPL_LICENSE_BTN_LABEL = ResourceManager.getInstance().getString("messagestrings","show_mpl_license_btn_label");
+			_ADOBE_LICENSE_BTN_LABEL = ResourceManager.getInstance().getString("messagestrings","show_adobe_license_btn_label");
+			_OPEN_APACHE_FLEX_FOLDER_BTN_LABEL = ResourceManager.getInstance().getString("messagestrings","open_apache_flex_folder_btn_label");
 			
 			_APACHE_FLEX_URL = _iResourceManager.getString("messagestrings","apache_flex_url");
 			_CONFIG_URL = _iResourceManager.getString("messagestrings","config_url");
@@ -159,6 +168,9 @@ package org.apache.flex.packageflexsdk.resource
 			_INFO_DOWNLOADING_FILE_FROM = _iResourceManager.getString("messagestrings","info_dowloading_file_from");
 			_ERROR_UNABLE_TO_DOWNLOAD_FILE = _iResourceManager.getString("messagestrings","error_unable_to_download_file");
 			_ERROR_UNABLE_TO_UNZIP = _iResourceManager.getString("messagestrings","error_unable_to_unzip");
+			_INFO_NEED_TO_READ_AND_AGREE_TO_LICENSE = _iResourceManager.getString("messagestrings","info_need_to_read_and_agree_to_license");
+			_INFO_INSTALLING = _iResourceManager.getString("messagestrings","info_installing");
+			_ERROR_DIRECTORY_NOT_EMPTY = _iResourceManager.getString("messagestrings","error_dir_not_empty");
 			
 			_STEP_CREATE_DIRECTORIES = _iResourceManager.getString("messagestrings","step_create_directories");
 			_STEP_DOWNLOAD_FLEX_SDK = _iResourceManager.getString("messagestrings","step_download_flex_sdk");
@@ -489,6 +501,36 @@ package org.apache.flex.packageflexsdk.resource
 		public function get INFO_DOWNLOADING_FILE_FROM():String
 		{
 			return _INFO_DOWNLOADING_FILE_FROM;
+		}
+
+		public function get INFO_NEED_TO_READ_AND_AGREE_TO_LICENSE():String
+		{
+			return _INFO_NEED_TO_READ_AND_AGREE_TO_LICENSE;
+		}
+
+		public function get MPL_LICENSE_BTN_LABEL():String
+		{
+			return _MPL_LICENSE_BTN_LABEL;
+		}
+
+		public function get ADOBE_LICENSE_BTN_LABEL():String
+		{
+			return _ADOBE_LICENSE_BTN_LABEL;
+		}
+
+		public function get INFO_INSTALLING():String
+		{
+			return _INFO_INSTALLING;
+		}
+
+		public function get OPEN_APACHE_FLEX_FOLDER_BTN_LABEL():String
+		{
+			return _OPEN_APACHE_FLEX_FOLDER_BTN_LABEL;
+		}
+
+		public function get ERROR_DIRECTORY_NOT_EMPTY():String
+		{
+			return _ERROR_DIRECTORY_NOT_EMPTY;
 		}
 
 	
